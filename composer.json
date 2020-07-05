@@ -1,0 +1,60 @@
+{
+  "name": "bsidev/bitrix-queue",
+  "description": "Queues for Bitrix CMS",
+  "keywords": [
+    "bitrix",
+    "queue"
+  ],
+  "type": "bitrix-d7-module",
+  "license": "MIT",
+  "support": {
+    "issues": "https://github.com/bsidev/bitrix-queue/issues",
+    "source": "https://github.com/bsidev/bitrix-queue"
+  },
+  "authors": [
+    {
+      "name": "Sergey Balasov",
+      "email": "sbalasov@gmail.com"
+    }
+  ],
+  "extra": {
+    "installer-name": "bsi.queue"
+  },
+  "require": {
+    "php": ">=7.2.5",
+    "composer/installers": "^1.0",
+    "psr/cache": "~1.0",
+    "symfony/console": "^4.4|^5.0",
+    "symfony/event-dispatcher": "^4.4|^5.0",
+    "symfony/messenger": "^5.1",
+    "symfony/dependency-injection": "^4.4|^5.0",
+    "symfony/config": "^4.4|^5.1"
+  },
+  "require-dev": {
+    "mockery/mockery": "^1.4",
+    "phpunit/phpunit": "^8.5",
+    "roave/security-advisories": "dev-master",
+    "squizlabs/php_codesniffer": "^3.5",
+    "symfony/property-access": "^4.4|^5.0",
+    "symfony/redis-messenger": "^5.1",
+    "symfony/serializer": "^4.4|^5.0",
+    "symfony/var-dumper": "^4.4|^5.0"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Bsi\\Queue\\Tests\\": "tests/"
+    }
+  },
+  "suggest": {
+    "symfony/amqp-messenger": "Provides AMQP integration for Symfony Messenger",
+    "symfony/redis-messenger": "Provides Redis integration for Symfony Messenger"
+  },
+  "scripts": {
+    "test": "phpunit",
+    "lint": "phpcs",
+    "fix": "phpcbf"
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

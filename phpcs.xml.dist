@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<ruleset>
+    <arg name="basepath" value="."/>
+    <arg name="extensions" value="php"/>
+    <arg name="parallel" value="80"/>
+    <arg name="cache" value=".phpcs-cache"/>
+    <arg name="colors"/>
+
+    <arg value="nps"/>
+
+    <file>lib</file>
+    <file>tests</file>
+
+    <ini name="memory_limit" value="128M"/>
+
+    <rule ref="PSR12"/>
+</ruleset>
