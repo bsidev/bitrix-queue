@@ -32,7 +32,7 @@ Composer установит модуль в папку `/bitrix/modules/bsi.queu
 Перейдите по ссылке ниже и следуйте инструкциям:
 
 ```
-http://домен/bitrix/admin/update_system_partner.php?addmodule=bsi.queue
+http://домен/bitrix/admin/partner_modules.php?id=bsi.queue&lang=ru&install=Y
 ```
 
 ### Проинициализуйте ядро модуля
