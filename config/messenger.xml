@@ -33,6 +33,8 @@
 
         <service id="messenger.middleware.add_bus_name_stamp" class="Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware" abstract="true"/>
 
+        <service id="messenger.middleware.add_uuid_stamp" class="Bsi\Queue\Middleware\AddUuidStampMiddleware"/>
+
         <service id="messenger.middleware.dispatch_after_current_bus" class="Symfony\Component\Messenger\Middleware\DispatchAfterCurrentBusMiddleware"/>
 
         <service id="messenger.middleware.reject_redelivered_message" class="Symfony\Component\Messenger\Middleware\RejectRedeliveredMessageMiddleware"/>
@@ -45,7 +47,7 @@
 
         <!-- Discovery -->
         <service id="messenger.receiver_locator">
-            <tag name="container.service_locator" />
+            <tag name="container.service_locator"/>
             <argument type="collection"/>
         </service>
 
@@ -69,7 +71,7 @@
 
         <!-- retry -->
         <service id="messenger.retry_strategy_locator">
-            <tag name="container.service_locator" />
+            <tag name="container.service_locator"/>
             <argument type="collection"/>
         </service>
 

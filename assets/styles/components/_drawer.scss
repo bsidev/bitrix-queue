@@ -1,0 +1,23 @@
+.c-drawer {
+    outline: 0;
+    background-color: #e4edef !important;
+
+    .el-drawer {
+        &__header {
+            margin-bottom: 20px;
+            color: $color-text-primary;
+
+            span {
+                font-size: 16px;
+            }
+        }
+
+        &__body {
+            overflow-y: auto;
+        }
+    }
+
+    [role] {
+        outline: 0;
+    }
+}

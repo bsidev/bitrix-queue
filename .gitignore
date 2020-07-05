@@ -7,3 +7,6 @@
 /.phpunit.result.cache
 /.phpcs-cache
 /phpcs.xml
+
+/node_modules/
+/yarn-error.log

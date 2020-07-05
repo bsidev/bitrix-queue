@@ -1,6 +1,6 @@
 <?php
 
-namespace Bsi\Queue\Entity;
+namespace Bsi\Queue\Transport\Bitrix;
 
 use Bitrix\Main\ORM\Data\DataManager;
 use Bitrix\Main\ORM\Fields\ArrayField;
