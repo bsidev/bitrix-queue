@@ -5,7 +5,6 @@ namespace Bsi\Queue\Transport\Bitrix;
 use Bitrix\Main\Application;
 use Bitrix\Main\ORM\Query\Query;
 use Bitrix\Main\Type\DateTime;
-use Bsi\Queue\Entity\MessageTable;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
 

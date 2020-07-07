@@ -2,10 +2,10 @@
 
 namespace Bsi\Queue\Tests\Transport\Bitrix;
 
-use Bsi\Queue\Entity\MessageTable;
 use Bsi\Queue\Tests\AbstractTestCase;
 use Bsi\Queue\Tests\Fixtures\DummyMessage;
 use Bsi\Queue\Transport\Bitrix\Connection;
+use Bsi\Queue\Transport\Bitrix\MessageTable;
 use Mockery;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;

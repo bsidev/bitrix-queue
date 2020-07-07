@@ -48,14 +48,20 @@ class EncoreLoader
         $entry = $this->entryPoints['entrypoints'][$entryName];
         if (isset($entry['css']) && is_array($entry['css'])) {
             foreach ($entry['css'] as $path) {
-                Asset::getInstance()->addString('<link rel="stylesheet" href="' . $path . '">',
-                    true, AssetLocation::AFTER_CSS);
+                Asset::getInstance()->addString(
+                    '<link rel="stylesheet" href="' . $path . '">',
+                    true,
+                    AssetLocation::AFTER_CSS
+                );
             }
         }
         if (isset($entry['js']) && is_array($entry['js'])) {
             foreach ($entry['js'] as $path) {
-                Asset::getInstance()->addString('<script src="' . $path . '"></script>',
-                    true, AssetLocation::AFTER_JS);
+                Asset::getInstance()->addString(
+                    '<script src="' . $path . '"></script>',
+                    true,
+                    AssetLocation::AFTER_JS
+                );
             }
         }
     }
