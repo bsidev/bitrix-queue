@@ -377,20 +377,24 @@ class Queue
 
     private function registerMonitoringConfiguration(array $config, ContainerBuilder $container): void
     {
-        $enabled = isset($config['monitoring']['enabled']) ? (bool) $config['monitoring']['enabled'] : false;
+        $monitoringConfig = $config['monitoring'] ?? [];
+        $enabled = isset($monitoringConfig['enabled']) ? (bool) $monitoringConfig['enabled'] : false;
 
         if ($enabled) {
+            $busNames = $monitoringConfig['buses'] ?? [];
+
             $storageDefinition = (new Definition(StorageInterface::class))
                 ->setFactory([new Reference('monitoring.storage_factory'), 'createTransport'])
                 ->setArguments([
-                    $config['monitoring']['dsn'],
-                    $config['monitoring']['options'] ?? [],
+                    $monitoringConfig['dsn'],
+                    $monitoringConfig['options'] ?? [],
                 ]);
 
             $container->setDefinition('monitoring.storage', $storageDefinition);
 
             $container->getDefinition('monitoring.push_stats_listener')
-                ->replaceArgument(0, new Reference('monitoring.storage'));
+                ->replaceArgument(0, new Reference('monitoring.storage'))
+                ->replaceArgument(1, array_values($busNames));
         } else {
             $container->removeDefinition('monitoring.push_stats_listener');
         }
