@@ -6,6 +6,8 @@ use Bitrix\Main\Config\Configuration;
 use Bitrix\Main\Event;
 use Bitrix\Main\EventResult;
 use Bsi\Queue\Exception\RuntimeException;
+use Bsi\Queue\Monitoring\Storage\StorageFactoryInterface;
+use Bsi\Queue\Monitoring\Storage\StorageInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
@@ -14,12 +16,14 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 
 /**
@@ -49,6 +53,9 @@ class Queue
         'transports' => [],
         'failure_transport' => null,
         'routing' => [],
+        'monitoring' => [
+            'enabled' => false,
+        ],
     ];
     protected const DEFAULT_BUS_CONFIG = [
         'default_middleware' => true,
@@ -128,11 +135,28 @@ class Queue
 
     public function registerTransportFactory(string $code, string $class, array $arguments = []): void
     {
+        if (!is_subclass_of($class, TransportFactoryInterface::class)) {
+            throw new RuntimeException(sprintf('Class "%s" must implement interface "%s".', $class, TransportFactoryInterface::class));
+        }
+
         $service = $this->container->register('messenger.transport.' . $code . '.factory', $class);
         foreach ($arguments as $argument) {
             $service->addArgument($argument);
         }
         $service->addTag('messenger.transport_factory');
+    }
+
+    public function registerMonitoringStorageFactory(string $code, string $class, array $arguments = []): void
+    {
+        if (!is_subclass_of($class, StorageFactoryInterface::class)) {
+            throw new RuntimeException(sprintf('Class "%s" must implement interface "%s".', $class, StorageFactoryInterface::class));
+        }
+
+        $service = $this->container->register('monitoring.storage.' . $code . '.factory', $class);
+        foreach ($arguments as $argument) {
+            $service->addArgument($argument);
+        }
+        $service->addTag('monitoring.storage_factory');
     }
 
     public function dispatchMessage(object $message, ?string $busName = null, array $stamps = []): Envelope
@@ -199,20 +223,23 @@ class Queue
     protected function initializeContainer(): void
     {
         $this->container->addObjectResource($this);
+        $this->container->addCompilerPass(new RegisterListenersPass());
         $this->container->addCompilerPass(new MessengerPass());
 
-        $this->container->register('event_dispatcher', EventDispatcher::class);
+        $this->container->register('event_dispatcher', EventDispatcher::class)->setPublic(true);
+
+        $loader = new XmlFileLoader($this->container, new FileLocator(dirname(__DIR__) . '/config'));
+        $loader->load('messenger.xml');
+        $loader->load('monitoring.xml');
 
         $this->registerMessengerConfiguration($this->config, $this->container);
+        $this->registerMonitoringConfiguration($this->config, $this->container);
 
         $this->container->compile();
     }
 
     private function registerMessengerConfiguration(array $config, ContainerBuilder $container): void
     {
-        $loader = new XmlFileLoader($container, new FileLocator(dirname(__DIR__) . '/config'));
-        $loader->load('messenger.xml');
-
         $defaultMiddleware = [
             'before' => [
                 ['id' => 'add_bus_name_stamp'],
@@ -345,6 +372,27 @@ class Queue
             $container->removeDefinition('console.command.messenger_failed_messages_retry');
             $container->removeDefinition('console.command.messenger_failed_messages_show');
             $container->removeDefinition('console.command.messenger_failed_messages_remove');
+        }
+    }
+
+    private function registerMonitoringConfiguration(array $config, ContainerBuilder $container): void
+    {
+        $enabled = isset($config['monitoring']['enabled']) ? (bool) $config['monitoring']['enabled'] : false;
+
+        if ($enabled) {
+            $storageDefinition = (new Definition(StorageInterface::class))
+                ->setFactory([new Reference('monitoring.storage_factory'), 'createTransport'])
+                ->setArguments([
+                    $config['monitoring']['dsn'],
+                    $config['monitoring']['options'] ?? [],
+                ]);
+
+            $container->setDefinition('monitoring.storage', $storageDefinition);
+
+            $container->getDefinition('monitoring.push_stats_listener')
+                ->replaceArgument(0, new Reference('monitoring.storage'));
+        } else {
+            $container->removeDefinition('monitoring.push_stats_listener');
         }
     }
 }

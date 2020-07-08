@@ -45,7 +45,7 @@
 
         <!-- Discovery -->
         <service id="messenger.receiver_locator">
-            <tag name="container.service_locator" />
+            <tag name="container.service_locator"/>
             <argument type="collection"/>
         </service>
 
@@ -69,7 +69,7 @@
 
         <!-- retry -->
         <service id="messenger.retry_strategy_locator">
-            <tag name="container.service_locator" />
+            <tag name="container.service_locator"/>
             <argument type="collection"/>
         </service>
 
