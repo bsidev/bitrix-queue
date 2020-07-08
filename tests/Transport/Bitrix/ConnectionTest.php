@@ -63,8 +63,8 @@ class ConnectionTest extends AbstractTestCase
     public function testInvalidConfigurationKeys(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown option found: [dummy_option]. Allowed options are [queue_name, redeliver_timeout]');
-        new Connection(['dummy_option' => 'foobar']);
+        $this->expectExceptionMessageMatches('/Unknown option found/');
+        Connection::buildConfiguration('bitrix://default?dummy_option=1');
     }
 
     public function testFind(): void

@@ -34,6 +34,9 @@ class Queue
     /** @var bool */
     protected $booted = false;
 
+    /** @var Queue */
+    private static $instance;
+
     protected const CONFIG_KEY = 'bsi.queue';
     protected const DEFAULT_CONFIG = [
         'buses' => [
@@ -63,7 +66,16 @@ class Queue
         ],
     ];
 
-    public function __construct()
+    public static function getInstance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    private function __construct()
     {
         $config = (array) Configuration::getValue(static::CONFIG_KEY);
 
@@ -91,12 +103,6 @@ class Queue
 
         $this->config = $config;
         $this->container = new ContainerBuilder();
-    }
-
-    public function __clone()
-    {
-        $this->booted = false;
-        $this->container = null;
     }
 
     public function boot(): void

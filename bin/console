@@ -2,7 +2,7 @@
 <?php
 
 use Bitrix\Main\Loader;
-use Bsi\Queue\Kernel;
+use Bsi\Queue\Queue;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
@@ -27,7 +27,7 @@ require $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.
 
 Loader::includeModule('bsi.queue');
 
-$container = Kernel::getInstance()->getContainer();
+$container = Queue::getInstance()->getContainer();
 $application = new Application();
 foreach ($container->findTaggedServiceIds('console.command') as $id => $tags) {
     $commandClass = $container->findDefinition($id)->getClass();
@@ -35,6 +35,8 @@ foreach ($container->findTaggedServiceIds('console.command') as $id => $tags) {
         throw new RuntimeException(sprintf('Invalid command "%s": class "%s" must implement interface "%s".', $id, $commandClass, Command::class));
     }
 
-    $application->add($commandClass);
+    /** @var Command $command */
+    $command = $container->get($id);
+    $application->add($command);
 }
 $application->run();

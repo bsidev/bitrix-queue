@@ -9,6 +9,8 @@ use Symfony\Component\Messenger\Stamp\BusNameStamp;
 use Symfony\Component\Messenger\Stamp\SentStamp;
 
 /**
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
  * @group time-sensitive
  * @group integration
  */
@@ -25,7 +27,7 @@ class QueueIntegrationTest extends AbstractTestCase
         ]);
         $this->getBitrixEventMock();
 
-        $queue = new Queue();
+        $queue = Queue::getInstance();
         $queue->addMessageHandler(DummyMessageHandler::class);
         $queue->boot();
 
@@ -47,7 +49,7 @@ class QueueIntegrationTest extends AbstractTestCase
         ]);
         $this->getBitrixEventMock();
 
-        $queue = new Queue();
+        $queue = Queue::getInstance();
         $queue->addMessageHandler(DummyMessageHandler::class);
         $queue->boot();
 
@@ -77,7 +79,7 @@ class QueueIntegrationTest extends AbstractTestCase
         ]);
         $this->getBitrixEventMock();
 
-        $queue = new Queue();
+        $queue = Queue::getInstance();
         $queue->addMessageHandler(DummyMessageHandler::class);
         $queue->boot();
 

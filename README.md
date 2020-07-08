@@ -39,7 +39,12 @@ http://домен/bitrix/admin/partner_modules.php?id=bsi.queue&lang=ru&install=
 
 ```php
 // local/php_interface/init.php
-$queue = new Bsi\Queue\Queue();
+use Bitrix\Main\Loader;
+use Bsi\Queue\Queue;
+
+Loader::includeModule('bsi.queue');
+
+$queue = Queue::getInstance();
 $queue->boot();
 ```
 
@@ -65,7 +70,7 @@ return [
                         'multiplier' => 2,
                     ],
                 ],
-                'failed' => 'bitrix://?queue_name=failed',
+                'failed' => 'bitrix://default?queue_name=failed',
             ],
             'failure_transport' => 'failed',
             'routing' => [

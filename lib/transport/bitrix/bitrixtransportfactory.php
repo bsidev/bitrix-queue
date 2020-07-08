@@ -15,7 +15,13 @@ class BitrixTransportFactory implements TransportFactoryInterface
     {
         unset($options['transport_name']);
 
-        return new BitrixTransport(new Connection($options), $serializer);
+        if (preg_match('/:\/\/$/', $dsn)) {
+            $configuration = $options;
+        } else {
+            $configuration = Connection::buildConfiguration($dsn, $options);
+        }
+
+        return new BitrixTransport(new Connection($configuration), $serializer);
     }
 
     public function supports(string $dsn, array $options): bool

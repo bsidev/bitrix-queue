@@ -8,6 +8,10 @@ use Bsi\Queue\Tests\Fixtures\DummyMessageHandler;
 use RedisException;
 use Symfony\Component\Messenger\Bridge\Redis\Transport\RedisTransportFactory;
 
+/**
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
+ */
 class QueueTest extends AbstractTestCase
 {
     /**
@@ -24,7 +28,7 @@ class QueueTest extends AbstractTestCase
         $this->getBitrixEventMock();
         $this->getBitrixConfigurationMock($options);
 
-        $queue = new Queue();
+        $queue = Queue::getInstance();
         $config = $queue->getConfig();
         $this->assertEquals($expectedBuses, $config['buses']);
         $this->assertSame($expectedDefaultBus, $config['default_bus']);
@@ -48,7 +52,7 @@ class QueueTest extends AbstractTestCase
         ]);
         $this->getBitrixConfigurationMock($options);
 
-        $queue = new Queue();
+        $queue = Queue::getInstance();
         $config = $queue->getConfig();
         $this->assertEquals($expectedBuses, $config['buses']);
         $this->assertSame($expectedDefaultBus, $config['default_bus']);
@@ -69,7 +73,7 @@ class QueueTest extends AbstractTestCase
             ],
         ]);
 
-        $queue = new Queue();
+        $queue = Queue::getInstance();
         $queue->boot();
         $container = $queue->getContainer();
 
@@ -100,7 +104,7 @@ class QueueTest extends AbstractTestCase
             ],
         ]);
 
-        $queue = new Queue();
+        $queue = Queue::getInstance();
         $queue->addMessageHandler(DummyMessageHandler::class);
         $queue->registerTransportFactory('redis', RedisTransportFactory::class);
         $queue->boot();

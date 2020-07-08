@@ -31,12 +31,34 @@ class Connection
 
     public function __construct(array $configuration = [])
     {
-        $optionsExtraKeys = array_diff(array_keys($configuration), array_keys(static::DEFAULT_OPTIONS));
+        $this->configuration = array_replace_recursive(static::DEFAULT_OPTIONS, $configuration);
+    }
+
+    public static function buildConfiguration(string $dsn, array $options = []): array
+    {
+        if (($components = parse_url($dsn)) === false) {
+            throw new InvalidArgumentException(sprintf('The given Bitrix DSN "%s" is invalid.', $dsn));
+        }
+
+        $query = [];
+        if (isset($components['query'])) {
+            parse_str($components['query'], $query);
+        }
+
+        $configuration = [];
+        $configuration += $query + $options + static::DEFAULT_OPTIONS;
+
+        $optionsExtraKeys = array_diff(array_keys($options), array_keys(static::DEFAULT_OPTIONS));
         if (count($optionsExtraKeys) > 0) {
             throw new InvalidArgumentException(sprintf('Unknown option found: [%s]. Allowed options are [%s].', implode(', ', $optionsExtraKeys), implode(', ', array_keys(static::DEFAULT_OPTIONS))));
         }
 
-        $this->configuration = array_replace_recursive(static::DEFAULT_OPTIONS, $configuration);
+        $queryExtraKeys = array_diff(array_keys($query), array_keys(static::DEFAULT_OPTIONS));
+        if (count($queryExtraKeys) > 0) {
+            throw new InvalidArgumentException(sprintf('Unknown option found in DSN: [%s]. Allowed options are [%s].', implode(', ', $queryExtraKeys), implode(', ', array_keys(static::DEFAULT_OPTIONS))));
+        }
+
+        return $configuration;
     }
 
     public function getConfiguration(): array
