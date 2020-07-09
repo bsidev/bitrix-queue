@@ -9,6 +9,8 @@ use Symfony\Component\Messenger\Envelope;
  */
 class SentMessageStats
 {
+    public const STATUS = 'sent';
+
     /** @var Envelope */
     private $envelope;
 

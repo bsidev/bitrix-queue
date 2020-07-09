@@ -1,6 +1,6 @@
 <?php
 
-namespace Bsi\Queue\Monitoring\Storage\Bitrix;
+namespace Bsi\Queue\Monitoring\Entity;
 
 use Bitrix\Main\ORM\Data\DataManager;
 use Bitrix\Main\ORM\Fields\ArrayField;
@@ -26,6 +26,10 @@ class StatTable extends DataManager
                 ->configurePrimary(true)
                 ->configureAutocomplete(true),
 
+            (new StringField('UID'))
+                ->configureRequired(true)
+                ->configureUnique(true),
+
             (new StringField('MESSAGE'))
                 ->configureRequired(true),
 
@@ -42,6 +46,12 @@ class StatTable extends DataManager
                 ->configureDefaultValue(function () {
                     return new DateTime();
                 }),
+
+            (new DatetimeField('RECEIVED_AT')),
+
+            (new DatetimeField('HANDLED_AT')),
+
+            (new DatetimeField('FAILED_AT')),
         ];
     }
 }

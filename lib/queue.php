@@ -243,6 +243,7 @@ class Queue
         $defaultMiddleware = [
             'before' => [
                 ['id' => 'add_bus_name_stamp'],
+                ['id' => 'add_unique_id_stamp'],
                 ['id' => 'reject_redelivered_message'],
                 ['id' => 'dispatch_after_current_bus'],
                 ['id' => 'failed_message_processing'],
@@ -382,6 +383,11 @@ class Queue
 
         if ($enabled) {
             $busNames = $monitoringConfig['buses'] ?? [];
+
+            $allowedBuses = array_keys($config['buses']);
+            if (count($busNames) !== count(array_intersect($busNames, $allowedBuses))) {
+                throw new RuntimeException(sprintf('Unknown bus found: [%s]. Allowed buses are [%s].', implode(', ', $busNames), implode(', ', $allowedBuses)));
+            }
 
             $storageDefinition = (new Definition(StorageInterface::class))
                 ->setFactory([new Reference('monitoring.storage_factory'), 'createTransport'])
