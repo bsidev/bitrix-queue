@@ -4,6 +4,7 @@ namespace Bsi\Queue\Utils;
 
 use Bitrix\Main\Page\Asset;
 use Bitrix\Main\Page\AssetLocation;
+use Bsi\Queue\Exception\InvalidArgumentException;
 use Bsi\Queue\Exception\RuntimeException;
 
 /**
@@ -33,7 +34,7 @@ class EncoreLoader
         ), true);
 
         if ($entryPoints === false) {
-            throw new RuntimeException('`entrypoints.json` not found!');
+            throw new RuntimeException('File "entrypoints.json" not found.');
         }
 
         $this->entryPoints = $entryPoints;
@@ -42,7 +43,7 @@ class EncoreLoader
     public function load(string $entryName): void
     {
         if (!isset($this->entryPoints['entrypoints'][$entryName])) {
-            throw new RuntimeException('Entry `' . $entryName . '` not found in entrypoints file!');
+            throw new InvalidArgumentException(sprintf('Entry with name "%s" not found.', $entryName));
         }
 
         $entry = $this->entryPoints['entrypoints'][$entryName];
@@ -60,7 +61,7 @@ class EncoreLoader
                 Asset::getInstance()->addString(
                     '<script src="' . $path . '"></script>',
                     true,
-                    AssetLocation::AFTER_JS
+                    AssetLocation::BODY_END
                 );
             }
         }

@@ -12,7 +12,7 @@ use Bitrix\Main\Type\DateTime;
 /**
  * @author Sergey Balasov <sbalasov@gmail.com>
  */
-class StatTable extends DataManager
+class BitrixStatTable extends DataManager
 {
     public static function getTableName(): string
     {
@@ -26,7 +26,7 @@ class StatTable extends DataManager
                 ->configurePrimary(true)
                 ->configureAutocomplete(true),
 
-            (new StringField('UID'))
+            (new StringField('UUID'))
                 ->configureRequired(true)
                 ->configureUnique(true),
 
@@ -43,7 +43,7 @@ class StatTable extends DataManager
 
             (new DatetimeField('CREATED_AT'))
                 ->configureRequired(true)
-                ->configureDefaultValue(function () {
+                ->configureDefaultValue(static function () {
                     return new DateTime();
                 }),
 
@@ -53,5 +53,13 @@ class StatTable extends DataManager
 
             (new DatetimeField('FAILED_AT')),
         ];
+    }
+
+    public static function getRowByUuid(string $uuid): ?array
+    {
+        return static::getRow([
+            'select' => ['*'],
+            'filter' => ['UUID' => $uuid],
+        ]);
     }
 }

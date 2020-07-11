@@ -33,7 +33,7 @@
 
         <service id="messenger.middleware.add_bus_name_stamp" class="Symfony\Component\Messenger\Middleware\AddBusNameStampMiddleware" abstract="true"/>
 
-        <service id="messenger.middleware.add_unique_id_stamp" class="Bsi\Queue\Middleware\AddUniqueIdStampMiddleware"/>
+        <service id="messenger.middleware.add_uuid_stamp" class="Bsi\Queue\Middleware\AddUuidStampMiddleware"/>
 
         <service id="messenger.middleware.dispatch_after_current_bus" class="Symfony\Component\Messenger\Middleware\DispatchAfterCurrentBusMiddleware"/>
 

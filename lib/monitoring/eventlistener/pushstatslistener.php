@@ -2,9 +2,9 @@
 
 namespace Bsi\Queue\Monitoring\EventListener;
 
+use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
 use Bsi\Queue\Monitoring\ConsumedMessageStats;
 use Bsi\Queue\Monitoring\SentMessageStats;
-use Bsi\Queue\Monitoring\Storage\StorageInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
@@ -18,14 +18,14 @@ use Symfony\Component\Messenger\Stamp\BusNameStamp;
  */
 class PushStatsListener implements EventSubscriberInterface
 {
-    /** @var StorageInterface */
-    private $storage;
+    /** @var AdapterInterface */
+    private $adapter;
     /** @var string[] */
     private $busNames;
 
-    public function __construct(StorageInterface $storage, array $busNames = [])
+    public function __construct(AdapterInterface $adapter, array $busNames = [])
     {
-        $this->storage = $storage;
+        $this->adapter = $adapter;
         $this->busNames = $busNames;
     }
 
@@ -35,7 +35,7 @@ class PushStatsListener implements EventSubscriberInterface
             return;
         }
 
-        $this->storage->pushSent(new SentMessageStats($event->getEnvelope()));
+        $this->adapter->getStorage()->pushSentMessageStats(new SentMessageStats($event->getEnvelope()));
     }
 
     public function onMessageReceived(WorkerMessageReceivedEvent $event): void
@@ -44,7 +44,7 @@ class PushStatsListener implements EventSubscriberInterface
             return;
         }
 
-        $this->storage->pushConsumed(new ConsumedMessageStats(
+        $this->adapter->getStorage()->pushConsumedMessageStats(new ConsumedMessageStats(
             $event->getEnvelope(),
             $event->getReceiverName(),
             ConsumedMessageStats::STATUS_RECEIVED
@@ -57,7 +57,7 @@ class PushStatsListener implements EventSubscriberInterface
             return;
         }
 
-        $this->storage->pushConsumed(new ConsumedMessageStats(
+        $this->adapter->getStorage()->pushConsumedMessageStats(new ConsumedMessageStats(
             $event->getEnvelope(),
             $event->getReceiverName(),
             ConsumedMessageStats::STATUS_HANDLED
@@ -70,7 +70,7 @@ class PushStatsListener implements EventSubscriberInterface
             return;
         }
 
-        $this->storage->pushConsumed(new ConsumedMessageStats(
+        $this->adapter->getStorage()->pushConsumedMessageStats(new ConsumedMessageStats(
             $event->getEnvelope(),
             $event->getReceiverName(),
             ConsumedMessageStats::STATUS_FAILED

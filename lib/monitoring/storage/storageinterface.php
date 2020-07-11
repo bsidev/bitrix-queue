@@ -10,7 +10,7 @@ use Bsi\Queue\Monitoring\SentMessageStats;
  */
 interface StorageInterface
 {
-    public function pushSent(SentMessageStats $stats): void;
+    public function pushSentMessageStats(SentMessageStats $stats): void;
 
-    public function pushConsumed(ConsumedMessageStats $stats): void;
+    public function pushConsumedMessageStats(ConsumedMessageStats $stats): void;
 }

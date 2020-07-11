@@ -5,15 +5,14 @@ namespace Bsi\Queue;
 use Bitrix\Main\Config\Configuration;
 use Bitrix\Main\Event;
 use Bitrix\Main\EventResult;
+use Bsi\Queue\Exception\LogicException;
 use Bsi\Queue\Exception\RuntimeException;
-use Bsi\Queue\Monitoring\Storage\StorageFactoryInterface;
-use Bsi\Queue\Monitoring\Storage\StorageInterface;
+use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
@@ -71,6 +70,11 @@ class Queue
             'delay' => 1000,
             'max_delay' => 0,
         ],
+    ];
+    protected const DEFAULT_MONITORING_CONFIG = [
+        'enabled' => true,
+        'adapter' => 'bitrix',
+        'buses' => [],
     ];
 
     public static function getInstance(): self
@@ -243,7 +247,7 @@ class Queue
         $defaultMiddleware = [
             'before' => [
                 ['id' => 'add_bus_name_stamp'],
-                ['id' => 'add_unique_id_stamp'],
+                ['id' => 'add_uuid_stamp'],
                 ['id' => 'reject_redelivered_message'],
                 ['id' => 'dispatch_after_current_bus'],
                 ['id' => 'failed_message_processing'],
@@ -378,10 +382,10 @@ class Queue
 
     private function registerMonitoringConfiguration(array $config, ContainerBuilder $container): void
     {
-        $monitoringConfig = $config['monitoring'] ?? [];
-        $enabled = isset($monitoringConfig['enabled']) ? (bool) $monitoringConfig['enabled'] : false;
+        $monitoringConfig = array_replace_recursive(static::DEFAULT_MONITORING_CONFIG, $config['monitoring']);
 
-        if ($enabled) {
+        $isEnabled = $monitoringConfig['enabled'] ?? false;
+        if ($isEnabled) {
             $busNames = $monitoringConfig['buses'] ?? [];
 
             $allowedBuses = array_keys($config['buses']);
@@ -389,17 +393,18 @@ class Queue
                 throw new RuntimeException(sprintf('Unknown bus found: [%s]. Allowed buses are [%s].', implode(', ', $busNames), implode(', ', $allowedBuses)));
             }
 
-            $storageDefinition = (new Definition(StorageInterface::class))
-                ->setFactory([new Reference('monitoring.storage_factory'), 'createTransport'])
+            $adapterDefinition = (new Definition(AdapterInterface::class))
+                ->setFactory([new Reference('monitoring.adapter_factory'), 'createAdapter'])
                 ->setArguments([
-                    $monitoringConfig['dsn'],
+                    $monitoringConfig['adapter'],
                     $monitoringConfig['options'] ?? [],
                 ]);
 
-            $container->setDefinition('monitoring.storage', $storageDefinition);
+            $container->setDefinition('monitoring.adapter', $adapterDefinition);
+            $container->setAlias(AdapterInterface::class, 'monitoring.adapter')->setPublic(true);
 
             $container->getDefinition('monitoring.push_stats_listener')
-                ->replaceArgument(0, new Reference('monitoring.storage'))
+                ->replaceArgument(0, new Reference('monitoring.adapter'))
                 ->replaceArgument(1, array_values($busNames));
         } else {
             $container->removeDefinition('monitoring.push_stats_listener');

@@ -1,15 +1,14 @@
 <?php
 
-namespace Bsi\Queue\Monitoring\Storage\Bitrix;
+namespace Bsi\Queue\Monitoring\Storage;
 
 use Bitrix\Main\Type\DateTime;
+use Bsi\Queue\Exception\LogicException;
+use Bsi\Queue\Exception\RuntimeException;
 use Bsi\Queue\Monitoring\ConsumedMessageStats;
-use Bsi\Queue\Monitoring\Entity\StatTable;
+use Bsi\Queue\Monitoring\Entity\BitrixStatTable;
 use Bsi\Queue\Monitoring\SentMessageStats;
-use Bsi\Queue\Monitoring\Storage\StorageInterface;
-use Bsi\Queue\Stamp\UniqueIdStamp;
-use Symfony\Component\Messenger\Exception\LogicException;
-use Symfony\Component\Messenger\Exception\RuntimeException;
+use Bsi\Queue\Stamp\UuidStamp;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
 
 /**
@@ -17,12 +16,12 @@ use Symfony\Component\Messenger\Stamp\BusNameStamp;
  */
 class BitrixStorage implements StorageInterface
 {
-    public function pushSent(SentMessageStats $stats): void
+    public function pushSentMessageStats(SentMessageStats $stats): void
     {
-        /** @var UniqueIdStamp|null $uniqueIdStamp */
-        $uniqueIdStamp = $stats->getEnvelope()->last(UniqueIdStamp::class);
-        if ($uniqueIdStamp === null) {
-            throw new LogicException('No UniqueIdStamp found on the Envelope.');
+        /** @var UuidStamp|null $uuidStamp */
+        $uuidStamp = $stats->getEnvelope()->last(UuidStamp::class);
+        if ($uuidStamp === null) {
+            throw new LogicException('No UuidStamp found on the Envelope.');
         }
 
         $message = $stats->getEnvelope()->getMessage();
@@ -33,8 +32,8 @@ class BitrixStorage implements StorageInterface
             $busNames[] = $stamp->getBusName();
         }
 
-        $result = StatTable::add([
-            'UID' => $uniqueIdStamp->getUniqueId(),
+        $result = BitrixStatTable::add([
+            'UUID' => $uuidStamp->getUuid()->toString(),
             'MESSAGE' => get_class($message),
             'STATUS' => SentMessageStats::STATUS,
             'BUSES' => $busNames,
@@ -44,20 +43,18 @@ class BitrixStorage implements StorageInterface
         }
     }
 
-    public function pushConsumed(ConsumedMessageStats $stats): void
+    public function pushConsumedMessageStats(ConsumedMessageStats $stats): void
     {
-        /** @var UniqueIdStamp|null $uniqueIdStamp */
-        $uniqueIdStamp = $stats->getEnvelope()->last(UniqueIdStamp::class);
-        if ($uniqueIdStamp === null) {
-            throw new LogicException('No UniqueIdStamp found on the Envelope.');
+        /** @var UuidStamp|null $uuidStamp */
+        $uuidStamp = $stats->getEnvelope()->last(UuidStamp::class);
+        if ($uuidStamp === null) {
+            throw new LogicException('No UuidStamp found on the Envelope.');
         }
+        $uuid = $uuidStamp->getUuid()->toString();
 
-        $row = StatTable::getRow([
-            'select' => ['ID'],
-            'filter' => ['UID' => $uniqueIdStamp->getUniqueId()],
-        ]);
-        if (!$row) {
-            throw new RuntimeException(sprintf('Envelope with unique id "%s" not found', $uniqueIdStamp->getUniqueId()));
+        $row = BitrixStatTable::getRowByUuid($uuid);
+        if ($row === null) {
+            throw new RuntimeException(sprintf('Envelope with uuid "%s" not found.', $uuid));
         }
 
         $data = [
@@ -71,7 +68,7 @@ class BitrixStorage implements StorageInterface
         } elseif ($stats->getStatus() === ConsumedMessageStats::STATUS_FAILED) {
             $data['FAILED_AT'] = new DateTime();
         }
-        $result = StatTable::update($row['ID'], $data);
+        $result = BitrixStatTable::update($row['ID'], $data);
         if (!$result->isSuccess()) {
             throw new RuntimeException(implode("\n", $result->getErrorMessages()));
         }

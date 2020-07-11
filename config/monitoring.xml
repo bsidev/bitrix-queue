@@ -7,17 +7,17 @@
     <services>
         <defaults public="false"/>
 
-        <service id="monitoring.storage_factory" class="Bsi\Queue\Monitoring\Storage\StorageFactory">
-            <argument type="tagged_iterator" tag="monitoring.storage_factory"/>
+        <service id="monitoring.adapter_factory" class="Bsi\Queue\Monitoring\Adapter\AdapterFactory">
+            <argument type="tagged_iterator" tag="monitoring.adapter_factory"/>
         </service>
 
-        <service id="monitoring.storage.bitrix.factory" class="Bsi\Queue\Monitoring\Storage\Bitrix\BitrixStorageFactory">
-            <tag name="monitoring.storage_factory"/>
+        <service id="monitoring.adapter.bitrix.factory" class="Bsi\Queue\Monitoring\Adapter\Bitrix\BitrixAdapterFactory">
+            <tag name="monitoring.adapter_factory"/>
         </service>
 
         <service id="monitoring.push_stats_listener" class="Bsi\Queue\Monitoring\EventListener\PushStatsListener">
             <tag name="kernel.event_subscriber"/>
-            <argument type="service" id="monitoring.storage"/>
+            <argument type="service" id="monitoring.adapter"/>
             <argument type="collection"/> <!-- Bus names -->
         </service>
     </services>
