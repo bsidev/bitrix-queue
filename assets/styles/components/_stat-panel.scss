@@ -1,0 +1,10 @@
+.c-stat-panel {
+    &__value {
+        font-size: 30px;
+        line-height: 1;
+        box-sizing: border-box;
+        padding: 10px 15px 15px;
+        text-align: center;
+        color: $color-text-primary;
+    }
+}

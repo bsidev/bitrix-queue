@@ -46,11 +46,9 @@ class BitrixMetricRepository implements MetricRepositoryInterface
 
     private function getDateRange(\DateTimeInterface $from, \DateTimeInterface $to): array
     {
-        $format = 'Y-m-d H:i:s';
-
         return [
-            new DateTime($from->format($format), $format),
-            new DateTime($to->format($format), $format),
+            DateTime::createFromTimestamp($from->getTimestamp()),
+            DateTime::createFromTimestamp($to->getTimestamp()),
         ];
     }
 }

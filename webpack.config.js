@@ -36,7 +36,6 @@ Encore
     loader: 'eslint-loader',
     exclude: /node_modules/,
     options: {
-      fix: true,
       emitError: true,
       emitWarning: true
     }

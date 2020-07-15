@@ -9,6 +9,7 @@
     "@babel/plugin-transform-runtime": "^7.10.4",
     "@babel/runtime": "^7.10.4",
     "@symfony/webpack-encore": "^0.30.2",
+    "apexcharts": "^3.19.3",
     "autoprefixer": "^9.8.4",
     "axios": "^0.19.2",
     "babel-eslint": "^10.1.0",
@@ -26,6 +27,7 @@
     "qs": "^6.9.4",
     "sass-loader": "^8.0.0",
     "vue": "^2.6.11",
+    "vue-apexcharts": "^1.6.0",
     "vue-loader": "^15.9.3",
     "vue-template-compiler": "^2.6.11",
     "webpack-notifier": "^1.6.0"
