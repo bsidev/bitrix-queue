@@ -11,7 +11,9 @@
 
 Модуль является "мостом" для компонента [symfony/messenger](https://symfony.com/doc/current/messenger.html).
 
-Более детально про принцип его работы можно почитать в [официальной документации](https://symfony.com/doc/current/components/messenger.html).
+Более детально про принцип его работы можно почитать тут:
+- [The Messenger Component](https://symfony.com/doc/current/components/messenger.html)
+- [Messenger: Sync & Queued Message Handling](https://symfony.com/doc/current/messenger.html)
 
 ## Возможности
 
