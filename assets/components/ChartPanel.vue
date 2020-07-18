@@ -4,8 +4,8 @@
       type="area"
       :options="mergedOptions"
       :series="series"
+      width="98%"
       :height="height"
-      class="c-chart-panel__chart"
     />
   </div>
 </template>
@@ -50,7 +50,6 @@
                             enabled: false
                         }
                     },
-                    colors: ['#5794f2', '#fade2a', '#73bf69', '#f2495c'],
                     dataLabels: {
                         enabled: false
                     },
@@ -69,7 +68,10 @@
                         opacity: 0.4
                     },
                     xaxis: {
-                        type: 'datetime'
+                        type: 'datetime',
+                        labels: {
+                            datetimeUTC: false
+                        }
                     },
                     yaxis: {
                         decimalsInFloat: false
@@ -82,10 +84,6 @@
             mergedOptions() {
                 return this.extend(this.defaultOptions, this.options);
             }
-        },
-
-        mounted() {
-            console.log(this.mergedOptions);
         },
 
         methods: {

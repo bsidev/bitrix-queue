@@ -1,24 +1,7 @@
 import Vue from 'vue';
-import {
-    Col,
-    Row,
-    Button,
-    Dropdown,
-    DropdownMenu,
-    DropdownItem
-} from 'element-ui';
-import lang from 'element-ui/lib/locale/lang/ru-RU';
-import locale from 'element-ui/lib/locale';
 
-locale.use(lang);
-
-Vue.prototype.$ELEMENT = { size: 'small' };
-Vue.use(Row);
-Vue.use(Col);
-Vue.use(Button);
-Vue.use(Dropdown);
-Vue.use(DropdownMenu);
-Vue.use(DropdownItem);
+import './plugins/element-ui';
+import i18n from './i18n';
 
 import views from './views';
 import './styles/index.scss';
@@ -40,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (views[node.dataset['name']] !== undefined) {
             new Vue({
                 el: node,
+                i18n,
                 render(h) {
                     return h(views[node.dataset['name']], {
                         props: { initial: initialData }

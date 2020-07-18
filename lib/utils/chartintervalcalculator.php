@@ -2,6 +2,9 @@
 
 namespace Bsi\Queue\Utils;
 
+/**
+ * @author Sergey Balasov <sbalasov@gmail.com>
+ */
 class ChartIntervalCalculator
 {
     /** @var int */

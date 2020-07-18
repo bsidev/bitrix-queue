@@ -3,72 +3,96 @@
 namespace Bsi\Queue\Monitoring\Storage;
 
 use Bitrix\Main\Type\DateTime;
+use Bsi\Queue\Exception\InvalidArgumentException;
 use Bsi\Queue\Exception\LogicException;
 use Bsi\Queue\Exception\RuntimeException;
-use Bsi\Queue\Monitoring\ConsumedMessageStats;
-use Bsi\Queue\Monitoring\Entity\BitrixStatTable;
-use Bsi\Queue\Monitoring\SentMessageStats;
+use Bsi\Queue\Monitoring\Adapter\Bitrix\BitrixMessageStatTable;
+use Bsi\Queue\Monitoring\MessageStatuses;
 use Bsi\Queue\Stamp\UuidStamp;
-use Symfony\Component\Messenger\Stamp\BusNameStamp;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
+use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
+use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
 /**
  * @author Sergey Balasov <sbalasov@gmail.com>
  */
 class BitrixStorage implements StorageInterface
 {
-    public function pushSentMessageStats(SentMessageStats $stats): void
+    /** @var SerializerInterface */
+    private $serializer;
+
+    public function __construct(SerializerInterface $serializer = null)
+    {
+        $this->serializer = $serializer ?? new PhpSerializer();
+    }
+
+    public function pushSentMessageStats(Envelope $envelope): void
     {
         /** @var UuidStamp|null $uuidStamp */
-        $uuidStamp = $stats->getEnvelope()->last(UuidStamp::class);
+        $uuidStamp = $envelope->last(UuidStamp::class);
         if ($uuidStamp === null) {
             throw new LogicException('No UuidStamp found on the Envelope.');
         }
+        $uuid = $uuidStamp->getUuid()->toString();
 
-        $message = $stats->getEnvelope()->getMessage();
-        $stamps = $stats->getEnvelope()->all(BusNameStamp::class);
-        $busNames = [];
-        /** @var BusNameStamp $stamp */
-        foreach ($stamps as $stamp) {
-            $busNames[] = $stamp->getBusName();
-        }
 
-        $result = BitrixStatTable::add([
-            'UUID' => $uuidStamp->getUuid()->toString(),
-            'MESSAGE' => get_class($message),
-            'STATUS' => SentMessageStats::STATUS,
-            'BUSES' => $busNames,
+        $encodedMessage = $this->serializer->encode($envelope);
+
+        $result = BitrixMessageStatTable::add([
+            'UUID' => $uuid,
+            'MESSAGE' => get_class($envelope->getMessage()),
+            'STATUS' => MessageStatuses::SENT,
+            'BODY' => $encodedMessage['body'],
+            'HEADERS' => $encodedMessage['headers'] ?? [],
         ]);
         if (!$result->isSuccess()) {
             throw new RuntimeException(implode("\n", $result->getErrorMessages()));
         }
     }
 
-    public function pushConsumedMessageStats(ConsumedMessageStats $stats): void
-    {
+    public function pushConsumedMessageStats(
+        Envelope $envelope,
+        string $status,
+        string $transportName,
+        \Throwable $error = null
+    ): void {
         /** @var UuidStamp|null $uuidStamp */
-        $uuidStamp = $stats->getEnvelope()->last(UuidStamp::class);
+        $uuidStamp = $envelope->last(UuidStamp::class);
         if ($uuidStamp === null) {
             throw new LogicException('No UuidStamp found on the Envelope.');
         }
         $uuid = $uuidStamp->getUuid()->toString();
 
-        $row = BitrixStatTable::getRowByUuid($uuid);
+        $row = BitrixMessageStatTable::getRowByUuid($uuid);
         if ($row === null) {
             throw new RuntimeException(sprintf('Envelope with uuid "%s" not found.', $uuid));
         }
 
+        $encodedMessage = $this->serializer->encode($envelope);
+
         $data = [
-            'STATUS' => $stats->getStatus(),
-            'TRANSPORT' => $stats->getTransport(),
+            'STATUS' => $status,
+            'BODY' => $encodedMessage['body'],
+            'HEADERS' => $encodedMessage['headers'] ?? [],
+            'TRANSPORT_NAME' => $transportName,
         ];
-        if ($stats->getStatus() === ConsumedMessageStats::STATUS_RECEIVED) {
+
+        if ($status === MessageStatuses::RECEIVED) {
             $data['RECEIVED_AT'] = new DateTime();
-        } elseif ($stats->getStatus() === ConsumedMessageStats::STATUS_HANDLED) {
+        } elseif ($status === MessageStatuses::HANDLED) {
             $data['HANDLED_AT'] = new DateTime();
-        } elseif ($stats->getStatus() === ConsumedMessageStats::STATUS_FAILED) {
+        } elseif ($status === MessageStatuses::FAILED) {
             $data['FAILED_AT'] = new DateTime();
+        } else {
+            throw new InvalidArgumentException(sprintf('The given status is invalid: %s', $status));
         }
-        $result = BitrixStatTable::update($row['ID'], $data);
+
+        if ($error) {
+            $data['ERROR'] = (string) $error;
+        }
+
+        $result = BitrixMessageStatTable::update($row['ID'], $data);
         if (!$result->isSuccess()) {
             throw new RuntimeException(implode("\n", $result->getErrorMessages()));
         }

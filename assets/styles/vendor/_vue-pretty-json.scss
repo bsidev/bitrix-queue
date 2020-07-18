@@ -1,0 +1,21 @@
+.vjs-tree {
+    background-color: $color-bg-gray !important;
+
+    .vjs-key {
+        color: #333 !important;
+    }
+
+    .vjs-value {
+        &__string {
+            color: #d14 !important;
+        }
+
+        &__number {
+            color: teal !important;
+        }
+    }
+
+    &.is-root {
+        padding: .5em;
+    }
+}

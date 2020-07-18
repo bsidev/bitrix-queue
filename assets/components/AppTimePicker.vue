@@ -7,7 +7,7 @@
 
       <el-dropdown-menu slot="dropdown">
         <el-dropdown-item
-          v-for="preset in presets"
+          v-for="preset in enabledPresets"
           :key="preset.id"
           :command="preset.id"
         >
@@ -32,36 +32,51 @@
             presets: {
                 type: Array,
                 default: () => {
-                    return [
-                        { id: '-5 minutes', name: 'Последние 5 минут' },
-                        { id: '-15 minutes', name: 'Последние 15 минут' },
-                        { id: '-30 minutes', name: 'Последние 30 минут' },
-                        { id: '-1 hours', name: 'Последний 1 час' },
-                        { id: '-3 hours', name: 'Последние 3 часа' },
-                        { id: '-6 hours', name: 'Последние 6 часа' },
-                        { id: '-12 hours', name: 'Последние 12 часа' },
-                        { id: '-24 hours', name: 'Последние 24 часа' },
-                        { id: '-2 days', name: 'Последние 2 дня' },
-                        { id: '-7 days', name: 'Последние 7 дней' },
-                        { id: '-30 days', name: 'Последние 30 дней' },
-                        { id: '-60 days', name: 'Последние 60 дней' },
-                        { id: '-90 days', name: 'Последние 90 дней' },
-                        { id: '-6 months', name: 'Последние 6 месяцев' },
-                        { id: '-1 year', name: 'Последний 1 год' },
-                    ];
+                    return [];
                 }
             }
         },
 
+        data() {
+            return {
+                allPresets: [
+                    { id: '-5 minutes', name: this.$t('enums.datePreset.last5m') },
+                    { id: '-15 minutes', name: this.$t('enums.datePreset.last15m') },
+                    { id: '-30 minutes', name: this.$t('enums.datePreset.last30m') },
+                    { id: '-1 hours', name: this.$t('enums.datePreset.last1h') },
+                    { id: '-3 hours', name: this.$t('enums.datePreset.last3h') },
+                    { id: '-6 hours', name: this.$t('enums.datePreset.last6h') },
+                    { id: '-12 hours', name: this.$t('enums.datePreset.last12h') },
+                    { id: '-24 hours', name: this.$t('enums.datePreset.last24h') },
+                    { id: '-2 days', name: this.$t('enums.datePreset.last2d') },
+                    { id: '-7 days', name: this.$t('enums.datePreset.last7d') },
+                    { id: '-30 days', name: this.$t('enums.datePreset.last30d') },
+                    { id: '-60 days', name: this.$t('enums.datePreset.last60d') },
+                    { id: '-90 days', name: this.$t('enums.datePreset.last90d') },
+                    { id: '-6 months', name: this.$t('enums.datePreset.last6M') },
+                    { id: '-1 year', name: this.$t('enums.datePreset.last1y') }
+                ]
+            };
+        },
+
         computed: {
             currentPreset() {
-                return this.presets.find(preset => preset.id === this.value);
+                return this.allPresets.find(preset => preset.id === this.value);
+            },
+
+            enabledPresets() {
+                if (this.presets.length === 0) {
+                    return this.allPresets;
+                }
+
+                return this.presets.map(presetId => this.allPresets.find(preset => preset.id === presetId));
             }
         },
 
         methods: {
             handleCommand(command) {
                 this.$emit('input', command);
+                this.$emit('change', command);
             }
         }
     };

@@ -1,0 +1,14 @@
+$--color-primary: $color-primary;
+$--font-path: '~element-ui/lib/theme-chalk/fonts';
+
+@import "~element-ui/packages/theme-chalk/src/base";
+@import "~element-ui/packages/theme-chalk/src/common/popup";
+@import "~element-ui/packages/theme-chalk/src/button";
+@import "~element-ui/packages/theme-chalk/src/col";
+@import "~element-ui/packages/theme-chalk/src/drawer";
+@import "~element-ui/packages/theme-chalk/src/dropdown-item";
+@import "~element-ui/packages/theme-chalk/src/dropdown-menu";
+@import "~element-ui/packages/theme-chalk/src/dropdown";
+@import "~element-ui/packages/theme-chalk/src/pagination";
+@import "~element-ui/packages/theme-chalk/src/row";
+@import "~element-ui/packages/theme-chalk/src/col";

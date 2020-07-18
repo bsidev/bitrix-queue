@@ -7,4 +7,20 @@
         text-align: center;
         color: $color-text-primary;
     }
+
+    &--success &__value {
+        color: $color-success;
+    }
+
+    &--warning &__value {
+        color: $color-warning;
+    }
+
+    &--danger &__value {
+        color: $color-danger;
+    }
+
+    &--info &__value {
+        color: $color-info;
+    }
 }

@@ -5900,6 +5900,11 @@ performance-now@^2.1.0:
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
   integrity sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=
 
+phpunserialize@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/phpunserialize/-/phpunserialize-1.0.1.tgz#a1cff24c011388404d1949c194c7f9e623d3cfd0"
+  integrity sha1-oc/yTAETiEBNGUnBlMf55iPTz9A=
+
 picomatch@^2.0.4, picomatch@^2.0.5, picomatch@^2.2.1:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.2.2.tgz#21f333e9b6b8eaff02468f5146ea406d345f4dad"
@@ -8120,6 +8125,16 @@ vue-hot-reload-api@^2.3.0:
   version "2.3.4"
   resolved "https://registry.yarnpkg.com/vue-hot-reload-api/-/vue-hot-reload-api-2.3.4.tgz#532955cc1eb208a3d990b3a9f9a70574657e08f2"
   integrity sha512-BXq3jwIagosjgNVae6tkHzzIk6a8MHFtzAdwhnV5VlvPTFxDCvIttgSiHWjdGoTJvXtmRu5HacExfdarRcFhog==
+
+vue-i18n@^8.18.2:
+  version "8.18.2"
+  resolved "https://registry.yarnpkg.com/vue-i18n/-/vue-i18n-8.18.2.tgz#cd7c12f2e178e6faa23b0e3cfd2f7bac9305f8fc"
+  integrity sha512-0X5nBTCZAVjlwcrPaYJwNs3iipBBTv0AUHwQUOa8yP3XbQGWKbRHqBb3OhCYtum/IHDD21d/df5Xd2VgyxbxfA==
+
+vue-json-pretty@^1.6.5:
+  version "1.6.5"
+  resolved "https://registry.yarnpkg.com/vue-json-pretty/-/vue-json-pretty-1.6.5.tgz#ceb1a46d1413528ff12e956d5f8e39aff1e08da1"
+  integrity sha512-6iW3Jk4/swNG+orb4VfjfekkYF+I/UXa8rGRNque9j5r2MnrbaP8+DlGVHMqrxPcsS59eMV/SpMlB2zNBzPDww==
 
 vue-loader@^15.9.3:
   version "15.9.3"

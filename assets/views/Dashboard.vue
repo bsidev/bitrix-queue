@@ -1,10 +1,13 @@
 <template>
   <div class="c-dashboard">
     <div class="c-dashboard__panel">
-      <app-time-picker v-model="timePreset" />
+      <app-time-picker
+        v-model="timePreset"
+        @change="handleTimePresetChange"
+      />
       <app-refresh-picker
         v-model="refresh"
-        title="Автоматическое обновление"
+        :title="$t('tooltip.autoUpdate')"
       />
     </div>
 
@@ -13,59 +16,88 @@
       :gutter="20"
     >
       <el-col :span="4">
-        <dashboard-panel title="Статус">
+        <dashboard-panel :title="$t('title.status')">
           <stat-panel>
             TODO
           </stat-panel>
         </dashboard-panel>
       </el-col>
       <el-col :span="4">
-        <dashboard-panel title="Подписчиков">
+        <dashboard-panel :title="$t('title.consumers')">
           <stat-panel>
             TODO
           </stat-panel>
         </dashboard-panel>
       </el-col>
       <el-col :span="4">
-        <dashboard-panel title="Отправлено">
-          <stat-panel>
+        <dashboard-panel :title="$t('enums.status.sent')">
+          <stat-panel type="info">
             {{ summary.sent ? summary.sent.toLocaleString() : 0 }}
           </stat-panel>
         </dashboard-panel>
       </el-col>
       <el-col :span="4">
-        <dashboard-panel title="В работе">
-          <stat-panel>
+        <dashboard-panel :title="$t('enums.status.received')">
+          <stat-panel type="warning">
             {{ summary.received ? summary.received.toLocaleString() : 0 }}
           </stat-panel>
         </dashboard-panel>
       </el-col>
       <el-col :span="4">
-        <dashboard-panel title="Завершено">
-          <stat-panel>
+        <dashboard-panel :title="$t('enums.status.handled')">
+          <stat-panel type="success">
             {{ summary.handled ? summary.handled.toLocaleString() : 0 }}
           </stat-panel>
         </dashboard-panel>
       </el-col>
       <el-col :span="4">
-        <dashboard-panel title="Ошибки">
-          <stat-panel>
+        <dashboard-panel :title="$t('enums.status.failed')">
+          <stat-panel type="danger">
             {{ summary.failed ? summary.failed.toLocaleString() : 0 }}
           </stat-panel>
         </dashboard-panel>
       </el-col>
     </el-row>
 
-    <el-row>
+    <el-row type="flex">
       <el-col :span="24">
-        <dashboard-panel title="Активность">
+        <dashboard-panel :title="$t('title.stats')">
           <chart-panel
-            :series="series"
+            :series="chartSeries"
+            :options="chartOptions"
             height="300px"
           />
         </dashboard-panel>
       </el-col>
     </el-row>
+
+    <el-row type="flex">
+      <el-col :span="24">
+        <dashboard-panel :title="$t('title.messages')">
+          <recent-messages-panel
+            :data="recentMessages.data"
+            :total="recentMessages.total"
+            :page-size="recentMessages.pageSize"
+            @message-select="handleMessageSelect"
+            @paginate="handleRecentMessagesPaginate"
+          />
+        </dashboard-panel>
+      </el-col>
+    </el-row>
+
+    <el-drawer
+      v-if="drawerMessage"
+      :title="drawerMessage.message"
+      :visible.sync="drawer"
+      destroy-on-close
+      size="70%"
+      custom-class="c-drawer"
+      @closed="handleDrawerClosed"
+    >
+      <message-details
+        :data="drawerMessage"
+      />
+    </el-drawer>
   </div>
 </template>
 
@@ -75,8 +107,10 @@
     import AppTimePicker from '../components/AppTimePicker';
     import AppRefreshPicker from '../components/AppRefreshPicker';
     import DashboardPanel from '../components/DashboardPanel';
-    import ChartPanel from '../components/ChartPanel';
     import StatPanel from '../components/StatPanel';
+    import ChartPanel from '../components/ChartPanel';
+    import RecentMessagesPanel from '../components/RecentMessagesPanel';
+    import MessageDetails from '../components/MessageDetails';
 
     import { fetchFromModule } from '../utils/request';
 
@@ -86,7 +120,9 @@
             AppRefreshPicker,
             DashboardPanel,
             StatPanel,
-            ChartPanel
+            ChartPanel,
+            RecentMessagesPanel,
+            MessageDetails
         },
 
         mixins: [ViewMixin],
@@ -98,16 +134,22 @@
                 refreshTimer: null,
                 refreshDelay: 10000,
                 summary: {},
-                series: []
+                chartSeries: [],
+                chartOptions: {
+                    colors: ['#909399', '#E6A23C', '#67C23A', '#F56C6C']
+                },
+                recentMessages: {
+                    data: [],
+                    total: 0,
+                    pageSize: 10,
+                    page: 1
+                },
+                drawer: false,
+                drawerMessage: null
             };
         },
 
         watch: {
-            timePreset(value) {
-                localStorage['bsi.queue.dashboard.timePreset'] = value;
-                this.fetchData();
-            },
-
             refresh(value) {
                 localStorage['bsi.queue.dashboard.refresh'] = value;
                 this.initAutoUpdate();
@@ -115,8 +157,6 @@
         },
 
         created() {
-            this.fetchData();
-
             let storedTimePreset = localStorage.getItem('bsi.queue.dashboard.timePreset');
             if (storedTimePreset) {
                 this.timePreset = storedTimePreset;
@@ -126,6 +166,8 @@
             if (storedRefreshState === 'true') {
                 this.refresh = true;
             }
+
+            this.fetchData();
         },
 
         beforeDestroy() {
@@ -136,6 +178,7 @@
             fetchData() {
                 this.fetchSummaryData();
                 this.fetchChartData();
+                this.fetchRecentMessagesData();
             },
 
             async fetchSummaryData() {
@@ -151,15 +194,27 @@
                     to: 'now'
                 });
 
-                this.series = data.map(item => {
+                this.chartSeries = data.map(item => {
                     return {
-                        name: item.metric.name,
+                        name: this.$t(`enums.status.${item.status}`),
                         data: item.values.map(value => {
                             value[0] *= 1000;
                             return value;
                         })
                     };
                 });
+            },
+
+            async fetchRecentMessagesData() {
+                const data = await fetchFromModule('bsi:queue.api.dashboard.recentMessages', {
+                    from: this.timePreset,
+                    to: 'now',
+                    pageSize: this.recentMessages.pageSize,
+                    page: this.recentMessages.page
+                });
+
+                this.recentMessages.data = data.data;
+                this.recentMessages.total = data.total;
             },
 
             initAutoUpdate() {
@@ -172,6 +227,25 @@
 
             autoUpdate() {
                 this.fetchData();
+            },
+
+            handleTimePresetChange(value) {
+                localStorage['bsi.queue.dashboard.timePreset'] = value;
+                this.fetchData();
+            },
+
+            handleMessageSelect(message) {
+                this.drawerMessage = message;
+                this.drawer = true;
+            },
+
+            handleRecentMessagesPaginate(value) {
+                this.recentMessages.page = value;
+                this.fetchRecentMessagesData();
+            },
+
+            handleDrawerClosed() {
+                this.drawerMessage = null;
             }
         }
     };

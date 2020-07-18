@@ -3,8 +3,7 @@
 namespace Bsi\Queue\Monitoring\EventListener;
 
 use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
-use Bsi\Queue\Monitoring\ConsumedMessageStats;
-use Bsi\Queue\Monitoring\SentMessageStats;
+use Bsi\Queue\Monitoring\MessageStatuses;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
@@ -35,7 +34,7 @@ class PushStatsListener implements EventSubscriberInterface
             return;
         }
 
-        $this->adapter->getStorage()->pushSentMessageStats(new SentMessageStats($event->getEnvelope()));
+        $this->adapter->getStorage()->pushSentMessageStats($event->getEnvelope());
     }
 
     public function onMessageReceived(WorkerMessageReceivedEvent $event): void
@@ -44,11 +43,11 @@ class PushStatsListener implements EventSubscriberInterface
             return;
         }
 
-        $this->adapter->getStorage()->pushConsumedMessageStats(new ConsumedMessageStats(
+        $this->adapter->getStorage()->pushConsumedMessageStats(
             $event->getEnvelope(),
-            $event->getReceiverName(),
-            ConsumedMessageStats::STATUS_RECEIVED
-        ));
+            MessageStatuses::RECEIVED,
+            $event->getReceiverName()
+        );
     }
 
     public function onMessageHandled(WorkerMessageHandledEvent $event): void
@@ -57,11 +56,11 @@ class PushStatsListener implements EventSubscriberInterface
             return;
         }
 
-        $this->adapter->getStorage()->pushConsumedMessageStats(new ConsumedMessageStats(
+        $this->adapter->getStorage()->pushConsumedMessageStats(
             $event->getEnvelope(),
-            $event->getReceiverName(),
-            ConsumedMessageStats::STATUS_HANDLED
-        ));
+            MessageStatuses::HANDLED,
+            $event->getReceiverName()
+        );
     }
 
     public function onMessageFailed(WorkerMessageFailedEvent $event): void
@@ -70,11 +69,12 @@ class PushStatsListener implements EventSubscriberInterface
             return;
         }
 
-        $this->adapter->getStorage()->pushConsumedMessageStats(new ConsumedMessageStats(
+        $this->adapter->getStorage()->pushConsumedMessageStats(
             $event->getEnvelope(),
+            MessageStatuses::FAILED,
             $event->getReceiverName(),
-            ConsumedMessageStats::STATUS_FAILED
-        ));
+            $event->getThrowable()
+        );
     }
 
     public static function getSubscribedEvents(): array

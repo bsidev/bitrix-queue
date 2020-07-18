@@ -2,11 +2,10 @@
     &__panel {
         display: flex;
         justify-content: flex-end;
-        margin-top: -41px;
-        margin-bottom: 20px;
+        margin: -41px -5px 20px 0;
     }
 
-    .el-row {
+    & > .el-row {
         margin-bottom: 20px;
     }
 }

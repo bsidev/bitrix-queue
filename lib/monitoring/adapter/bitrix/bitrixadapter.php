@@ -3,10 +3,8 @@
 namespace Bsi\Queue\Monitoring\Adapter\Bitrix;
 
 use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
-use Bsi\Queue\Monitoring\Repository\BitrixChartDataRepository;
-use Bsi\Queue\Monitoring\Repository\BitrixMetricRepository;
-use Bsi\Queue\Monitoring\Repository\ChartDataRepositoryInterface;
-use Bsi\Queue\Monitoring\Repository\MetricRepositoryInterface;
+use Bsi\Queue\Monitoring\Repository\BitrixMessageStatsRepository;
+use Bsi\Queue\Monitoring\Repository\MessageStatsRepositoryInterface;
 use Bsi\Queue\Monitoring\Storage\BitrixStorage;
 use Bsi\Queue\Monitoring\Storage\StorageInterface;
 
@@ -20,13 +18,8 @@ class BitrixAdapter implements AdapterInterface
         return new BitrixStorage();
     }
 
-    public function getMetricRepository(): MetricRepositoryInterface
+    public function getMessageStatsRepository(): MessageStatsRepositoryInterface
     {
-        return new BitrixMetricRepository();
-    }
-
-    public function getChartDataRepository(): ChartDataRepositoryInterface
-    {
-        return new BitrixChartDataRepository();
+        return new BitrixMessageStatsRepository();
     }
 }
