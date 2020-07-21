@@ -79,21 +79,33 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
         ]);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getSentChartDataset(\DateTimeInterface $from, \DateTimeInterface $to, int $interval): array
     {
         return $this->getDatasetByField('SENT_AT', $from->getTimestamp(), $to->getTimestamp(), $interval);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getReceivedChartDataset(\DateTimeInterface $from, \DateTimeInterface $to, int $interval): array
     {
         return $this->getDatasetByField('RECEIVED_AT', $from->getTimestamp(), $to->getTimestamp(), $interval);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getHandledChartDataset(\DateTimeInterface $from, \DateTimeInterface $to, int $interval): array
     {
         return $this->getDatasetByField('HANDLED_AT', $from->getTimestamp(), $to->getTimestamp(), $interval);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function getFailedChartDataset(\DateTimeInterface $from, \DateTimeInterface $to, int $interval): array
     {
         return $this->getDatasetByField('FAILED_AT', $from->getTimestamp(), $to->getTimestamp(), $interval);

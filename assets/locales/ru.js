@@ -8,7 +8,9 @@ export default {
         handled_at: 'Дата обработки',
         failed_at: 'Дата ошибки',
         transport_name: 'Получатель',
-        buses: 'Шины'
+        buses: 'Шины',
+        problem: 'Проблема',
+        ok: 'ОК'
     },
     title: {
         status: 'Статус',
@@ -44,7 +46,7 @@ export default {
             last60d: 'Последние 60 дней',
             last90d: 'Последние 90 дней',
             last6M: 'Последние 6 месяцев',
-            last1y: 'Последний 1 год',
+            last1y: 'Последний 1 год'
         }
     }
 };

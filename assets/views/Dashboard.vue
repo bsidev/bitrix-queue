@@ -1,104 +1,110 @@
 <template>
-  <div class="c-dashboard">
-    <div class="c-dashboard__panel">
-      <app-time-picker
-        v-model="timePreset"
-        @change="handleTimePresetChange"
-      />
-      <app-refresh-picker
-        v-model="refresh"
-        :title="$t('tooltip.autoUpdate')"
-      />
+    <div class="c-dashboard">
+        <div class="c-dashboard__panel">
+            <app-time-picker
+                v-model="timePreset"
+                @change="handleTimePresetChange"
+            />
+            <app-refresh-picker
+                v-model="refresh"
+                :title="$t('tooltip.autoUpdate')"
+            />
+        </div>
+
+        <el-row
+            type="flex"
+            :gutter="20"
+        >
+            <el-col :span="4">
+                <dashboard-panel :title="$t('title.status')">
+                    <stat-panel v-if="!init">
+                        -
+                    </stat-panel>
+                    <stat-panel
+                        v-else
+                        :type="hasConsumers ? 'success' : 'danger'"
+                    >
+                        {{ hasConsumers ? $t('label.ok') : $t('label.problem') }}
+                    </stat-panel>
+                </dashboard-panel>
+            </el-col>
+            <el-col :span="4">
+                <dashboard-panel :title="$t('title.consumers')">
+                    <stat-panel>
+                        {{ summary.consumers ? summary.consumers.toLocaleString() : 0 }}
+                    </stat-panel>
+                </dashboard-panel>
+            </el-col>
+            <el-col :span="4">
+                <dashboard-panel :title="$t('enums.status.sent')">
+                    <stat-panel type="info">
+                        {{ summary.sent ? summary.sent.toLocaleString() : 0 }}
+                    </stat-panel>
+                </dashboard-panel>
+            </el-col>
+            <el-col :span="4">
+                <dashboard-panel :title="$t('enums.status.received')">
+                    <stat-panel type="warning">
+                        {{ summary.received ? summary.received.toLocaleString() : 0 }}
+                    </stat-panel>
+                </dashboard-panel>
+            </el-col>
+            <el-col :span="4">
+                <dashboard-panel :title="$t('enums.status.handled')">
+                    <stat-panel type="success">
+                        {{ summary.handled ? summary.handled.toLocaleString() : 0 }}
+                    </stat-panel>
+                </dashboard-panel>
+            </el-col>
+            <el-col :span="4">
+                <dashboard-panel :title="$t('enums.status.failed')">
+                    <stat-panel type="danger">
+                        {{ summary.failed ? summary.failed.toLocaleString() : 0 }}
+                    </stat-panel>
+                </dashboard-panel>
+            </el-col>
+        </el-row>
+
+        <el-row type="flex">
+            <el-col :span="24">
+                <dashboard-panel :title="$t('title.stats')">
+                    <chart-panel
+                        :series="chartSeries"
+                        :options="chartOptions"
+                        height="300px"
+                    />
+                </dashboard-panel>
+            </el-col>
+        </el-row>
+
+        <el-row type="flex">
+            <el-col :span="24">
+                <dashboard-panel :title="$t('title.messages')">
+                    <recent-messages-panel
+                        :data="recentMessages.data"
+                        :total="recentMessages.total"
+                        :page-size="recentMessages.pageSize"
+                        @message-select="handleMessageSelect"
+                        @paginate="handleRecentMessagesPaginate"
+                    />
+                </dashboard-panel>
+            </el-col>
+        </el-row>
+
+        <el-drawer
+            v-if="drawerMessage"
+            :title="drawerMessage.message"
+            :visible.sync="drawer"
+            destroy-on-close
+            size="70%"
+            custom-class="c-drawer"
+            @closed="handleDrawerClosed"
+        >
+            <message-details
+                :data="drawerMessage"
+            />
+        </el-drawer>
     </div>
-
-    <el-row
-      type="flex"
-      :gutter="20"
-    >
-      <el-col :span="4">
-        <dashboard-panel :title="$t('title.status')">
-          <stat-panel>
-            TODO
-          </stat-panel>
-        </dashboard-panel>
-      </el-col>
-      <el-col :span="4">
-        <dashboard-panel :title="$t('title.consumers')">
-          <stat-panel>
-            TODO
-          </stat-panel>
-        </dashboard-panel>
-      </el-col>
-      <el-col :span="4">
-        <dashboard-panel :title="$t('enums.status.sent')">
-          <stat-panel type="info">
-            {{ summary.sent ? summary.sent.toLocaleString() : 0 }}
-          </stat-panel>
-        </dashboard-panel>
-      </el-col>
-      <el-col :span="4">
-        <dashboard-panel :title="$t('enums.status.received')">
-          <stat-panel type="warning">
-            {{ summary.received ? summary.received.toLocaleString() : 0 }}
-          </stat-panel>
-        </dashboard-panel>
-      </el-col>
-      <el-col :span="4">
-        <dashboard-panel :title="$t('enums.status.handled')">
-          <stat-panel type="success">
-            {{ summary.handled ? summary.handled.toLocaleString() : 0 }}
-          </stat-panel>
-        </dashboard-panel>
-      </el-col>
-      <el-col :span="4">
-        <dashboard-panel :title="$t('enums.status.failed')">
-          <stat-panel type="danger">
-            {{ summary.failed ? summary.failed.toLocaleString() : 0 }}
-          </stat-panel>
-        </dashboard-panel>
-      </el-col>
-    </el-row>
-
-    <el-row type="flex">
-      <el-col :span="24">
-        <dashboard-panel :title="$t('title.stats')">
-          <chart-panel
-            :series="chartSeries"
-            :options="chartOptions"
-            height="300px"
-          />
-        </dashboard-panel>
-      </el-col>
-    </el-row>
-
-    <el-row type="flex">
-      <el-col :span="24">
-        <dashboard-panel :title="$t('title.messages')">
-          <recent-messages-panel
-            :data="recentMessages.data"
-            :total="recentMessages.total"
-            :page-size="recentMessages.pageSize"
-            @message-select="handleMessageSelect"
-            @paginate="handleRecentMessagesPaginate"
-          />
-        </dashboard-panel>
-      </el-col>
-    </el-row>
-
-    <el-drawer
-      v-if="drawerMessage"
-      :title="drawerMessage.message"
-      :visible.sync="drawer"
-      destroy-on-close
-      size="70%"
-      custom-class="c-drawer"
-      @closed="handleDrawerClosed"
-    >
-      <message-details
-        :data="drawerMessage"
-      />
-    </el-drawer>
-  </div>
 </template>
 
 <script>
@@ -133,6 +139,7 @@
                 refresh: false,
                 refreshTimer: null,
                 refreshDelay: 10000,
+                init: false,
                 summary: {},
                 chartSeries: [],
                 chartOptions: {
@@ -147,6 +154,12 @@
                 drawer: false,
                 drawerMessage: null
             };
+        },
+
+        computed: {
+            hasConsumers() {
+                return this.summary.consumers && Number(this.summary.consumers) > 0;
+            }
         },
 
         watch: {
@@ -167,7 +180,9 @@
                 this.refresh = true;
             }
 
-            this.fetchData();
+            this.fetchData().then(() => {
+                this.init = true;
+            });
         },
 
         beforeDestroy() {
@@ -176,9 +191,11 @@
 
         methods: {
             fetchData() {
-                this.fetchSummaryData();
-                this.fetchChartData();
-                this.fetchRecentMessagesData();
+                return Promise.all([
+                    this.fetchSummaryData(),
+                    this.fetchChartData(),
+                    this.fetchRecentMessagesData()
+                ]);
             },
 
             async fetchSummaryData() {

@@ -1,62 +1,62 @@
 <template>
-  <div class="c-message-details c-dashboard">
-    <el-row
-      type="flex"
-      :gutter="20"
-    >
-      <el-col :span="12">
-        <dashboard-panel :title="$t('title.summary')">
-          <div class="c-message-details__summary">
-            <el-row
-              v-for="(prop, index) in summaryProps"
-              :key="index"
-              type="flex"
-              :gutter="20"
-              class=""
-            >
-              <el-col :span="8">
-                {{ prop.name }}
-              </el-col>
-              <el-col :span="16">
-                {{ prop.value }}
-              </el-col>
-            </el-row>
-          </div>
-        </dashboard-panel>
-      </el-col>
-      <el-col :span="12">
-        <dashboard-panel :title="$t('title.data')">
-          <div class="c-message-details__data">
-            <vue-json-pretty
-              :data="prettyData"
-            />
-          </div>
-        </dashboard-panel>
-      </el-col>
-    </el-row>
+    <div class="c-message-details c-dashboard">
+        <el-row
+            type="flex"
+            :gutter="20"
+        >
+            <el-col :span="12">
+                <dashboard-panel :title="$t('title.summary')">
+                    <div class="c-message-details__summary">
+                        <el-row
+                            v-for="(prop, index) in summaryProps"
+                            :key="index"
+                            type="flex"
+                            :gutter="20"
+                            class=""
+                        >
+                            <el-col :span="8">
+                                {{ prop.name }}
+                            </el-col>
+                            <el-col :span="16">
+                                {{ prop.value }}
+                            </el-col>
+                        </el-row>
+                    </div>
+                </dashboard-panel>
+            </el-col>
+            <el-col :span="12">
+                <dashboard-panel :title="$t('title.data')">
+                    <div class="c-message-details__data">
+                        <vue-json-pretty
+                            :data="prettyData"
+                        />
+                    </div>
+                </dashboard-panel>
+            </el-col>
+        </el-row>
 
-    <el-row
-      v-if="data.error"
-      type="flex"
-    >
-      <el-col :span="24">
-        <dashboard-panel :title="$t('title.errors')">
-          <table class="c-table c-table--striped">
-            <tbody>
-              <tr
-                v-for="(row, index) in errorRows"
-                :key="index"
-              >
-                <td>
-                  {{ row }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </dashboard-panel>
-      </el-col>
-    </el-row>
-  </div>
+        <el-row
+            v-if="data.error"
+            type="flex"
+        >
+            <el-col :span="24">
+                <dashboard-panel :title="$t('title.errors')">
+                    <table class="c-table c-table--striped">
+                        <tbody>
+                            <tr
+                                v-for="(row, index) in errorRows"
+                                :key="index"
+                            >
+                                <td>
+                                    {{ row }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </dashboard-panel>
+            </el-col>
+        </el-row>
+    </div>
 </template>
 
 <script>

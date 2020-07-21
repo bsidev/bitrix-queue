@@ -1,12 +1,12 @@
 <template>
-  <div class="c-refresh-picker">
-    <el-button
-      :type="value ? 'primary' : 'default'"
-      @click="handleClick"
-    >
-      <i class="el-icon-refresh" />
-    </el-button>
-  </div>
+    <div class="c-refresh-picker">
+        <el-button
+            :type="value ? 'primary' : 'default'"
+            @click="handleClick"
+        >
+            <i class="el-icon-refresh" />
+        </el-button>
+    </div>
 </template>
 
 <script>

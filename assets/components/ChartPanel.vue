@@ -1,13 +1,13 @@
 <template>
-  <div class="c-chart-panel">
-    <apexchart
-      type="area"
-      :options="mergedOptions"
-      :series="series"
-      width="98%"
-      :height="height"
-    />
-  </div>
+    <div class="c-chart-panel">
+        <apexchart
+            type="area"
+            :options="mergedOptions"
+            :series="series"
+            width="98%"
+            :height="height"
+        />
+    </div>
 </template>
 
 <script>

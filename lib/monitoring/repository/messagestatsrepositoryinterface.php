@@ -3,7 +3,6 @@
 namespace Bsi\Queue\Monitoring\Repository;
 
 use Bsi\Queue\Monitoring\MessageStatsCollection;
-use Symfony\Component\Messenger\Envelope;
 
 /**
  * @author Sergey Balasov <sbalasov@gmail.com>

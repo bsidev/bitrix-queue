@@ -1,25 +1,25 @@
 <template>
-  <div class="c-time-picker">
-    <el-dropdown @command="handleCommand">
-      <el-button type="default">
-        <i class="el-icon-time el-icon--left" />{{ currentPreset.name }}<i class="el-icon-arrow-down el-icon--right" />
-      </el-button>
+    <div class="c-time-picker">
+        <el-dropdown @command="handleCommand">
+            <el-button type="default">
+                <i class="el-icon-time el-icon--left" />{{ currentPreset.name }}<i class="el-icon-arrow-down el-icon--right" />
+            </el-button>
 
-      <el-dropdown-menu slot="dropdown">
-        <el-dropdown-item
-          v-for="preset in enabledPresets"
-          :key="preset.id"
-          :command="preset.id"
-        >
-          {{ preset.name }}
-          <i
-            v-if="preset.id === value"
-            class="el-icon-check el-icon--right"
-          />
-        </el-dropdown-item>
-      </el-dropdown-menu>
-    </el-dropdown>
-  </div>
+            <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item
+                    v-for="preset in enabledPresets"
+                    :key="preset.id"
+                    :command="preset.id"
+                >
+                    {{ preset.name }}
+                    <i
+                        v-if="preset.id === value"
+                        class="el-icon-check el-icon--right"
+                    />
+                </el-dropdown-item>
+            </el-dropdown-menu>
+        </el-dropdown>
+    </div>
 </template>
 
 <script>

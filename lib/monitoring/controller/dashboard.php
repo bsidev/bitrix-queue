@@ -4,13 +4,13 @@ namespace Bsi\Queue\Monitoring\Controller;
 
 use Bitrix\Main\Error;
 use Bitrix\Main\Request;
+use Bsi\Queue\Monitoring\ConsumerCounter;
 use Bsi\Queue\Monitoring\MessageStats;
 use Bsi\Queue\Monitoring\MessageStatuses;
 use Bsi\Queue\Monitoring\Repository\MessageStatsRepositoryInterface;
 use Bsi\Queue\Stamp\UuidStamp;
 use Bsi\Queue\Utils\ChartIntervalCalculator;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
-use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 
 /**
  * @author Sergey Balasov <sbalasov@gmail.com>
@@ -19,11 +19,14 @@ class Dashboard extends AbstractController
 {
     /** @var MessageStatsRepositoryInterface */
     private $messageStatsRepository;
+    /** @var ConsumerCounter */
+    private $consumerCounter;
 
     public function __construct(Request $request = null)
     {
         parent::__construct($request);
         $this->messageStatsRepository = $this->adapter->getMessageStatsRepository();
+        $this->consumerCounter = new ConsumerCounter();
     }
 
     public function summaryAction(string $from, string $to): array
@@ -32,6 +35,7 @@ class Dashboard extends AbstractController
         $toDate = new \DateTimeImmutable($to);
 
         return [
+            'consumers' => $this->consumerCounter->get(),
             'sent' => $this->messageStatsRepository->countSent($fromDate, $toDate),
             'received' => $this->messageStatsRepository->countReceived($fromDate, $toDate),
             'handled' => $this->messageStatsRepository->countHandled($fromDate, $toDate),

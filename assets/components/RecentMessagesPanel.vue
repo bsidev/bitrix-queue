@@ -1,77 +1,77 @@
 <template>
-  <div class="c-table-panel">
-    <table class="c-table">
-      <thead>
-        <tr>
-          <th style="width: 140px">
-            {{ $t('label.sent_at') }}
-          </th>
-          <th>
-            {{ $t('label.message') }}
-          </th>
-          <th style="width: 140px">
-            {{ $t('label.status') }}
-          </th>
-          <th style="width: 200px">
-            {{ $t('label.transport_name') }}
-          </th>
-          <th>
-            {{ $t('label.buses') }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(row, index) in data"
-          :key="index"
-        >
-          <td>
-            {{ formatDate(row.sent_at) }}
-          </td>
-          <td>
-            <a
-              class="c-link"
-              @click.prevent="handleMessageSelect(row)"
-            >
-              {{ row.message }}
-            </a>
-          </td>
-          <td>
-            <el-tag
-              :type="getStatusType(row.status)"
-              disable-transitions
-            >
-              {{ $t(`enums.status.${row.status}`) }}
-            </el-tag>
-          </td>
-          <td>
-            {{ row.transport_name }}
-          </td>
-          <td>
-            {{ Array.isArray(row.buses) ? row.buses.join(', ') : '' }}
-          </td>
-        </tr>
+    <div class="c-table-panel">
+        <table class="c-table">
+            <thead>
+                <tr>
+                    <th style="width: 140px">
+                        {{ $t('label.sent_at') }}
+                    </th>
+                    <th>
+                        {{ $t('label.message') }}
+                    </th>
+                    <th style="width: 140px">
+                        {{ $t('label.status') }}
+                    </th>
+                    <th style="width: 200px">
+                        {{ $t('label.transport_name') }}
+                    </th>
+                    <th>
+                        {{ $t('label.buses') }}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr
+                    v-for="(row, index) in data"
+                    :key="index"
+                >
+                    <td>
+                        {{ formatDate(row.sent_at) }}
+                    </td>
+                    <td>
+                        <a
+                            class="c-link"
+                            @click.prevent="handleMessageSelect(row)"
+                        >
+                            {{ row.message }}
+                        </a>
+                    </td>
+                    <td>
+                        <el-tag
+                            :type="getStatusType(row.status)"
+                            disable-transitions
+                        >
+                            {{ $t(`enums.status.${row.status}`) }}
+                        </el-tag>
+                    </td>
+                    <td>
+                        {{ row.transport_name }}
+                    </td>
+                    <td>
+                        {{ Array.isArray(row.buses) ? row.buses.join(', ') : '' }}
+                    </td>
+                </tr>
 
-        <tr v-if="data.length === 0">
-          <td
-            colspan="5"
-            style="text-align: center"
-          >
-            Нет данных
-          </td>
-        </tr>
-      </tbody>
-    </table>
+                <tr v-if="data.length === 0">
+                    <td
+                        colspan="5"
+                        style="text-align: center"
+                    >
+                        Нет данных
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-    <el-pagination
-      background
-      layout="prev, pager, next"
-      :total="total"
-      :page-size="pageSize"
-      hide-on-single-page
-      @current-change="handlePageChange"
-    />
-  </div>
+        <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="total"
+            :page-size="pageSize"
+            hide-on-single-page
+            @current-change="handlePageChange"
+        />
+    </div>
 </template>
 
 <script>
