@@ -1,12 +1,10 @@
 <?php
 
-use Bitrix\Main\Config\Configuration;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
-
-Loc::loadMessages(__FILE__);
+use Bsi\Queue\Monitoring\Agent\CleanUpStatsAgent;
 
 class bsi_queue extends CModule
 {
@@ -24,6 +22,8 @@ class bsi_queue extends CModule
     public function __construct()
     {
         $arModuleVersion = [];
+
+        Loc::loadMessages(__FILE__);
 
         include __DIR__ . '/version.php';
         if (is_array($arModuleVersion)) {
@@ -85,7 +85,22 @@ class bsi_queue extends CModule
 
             return false;
         }
+
         ModuleManager::registerModule($this->MODULE_ID);
+
+        $startTime = ConvertTimeStamp(time() + \CTimeZone::GetOffset() + 60, 'FULL');
+        CAgent::AddAgent(
+            CleanUpStatsAgent::class . '::run();',
+            $this->MODULE_ID,
+            'N',
+            86400,
+            '',
+            'Y',
+            $startTime,
+            100,
+            false,
+            false
+        );
 
         return true;
     }
@@ -109,6 +124,8 @@ class bsi_queue extends CModule
             Option::delete($this->MODULE_ID);
         }
 
+        CAgent::RemoveModuleAgents($this->MODULE_ID);
+
         ModuleManager::unRegisterModule($this->MODULE_ID);
 
         return true;
@@ -116,11 +133,20 @@ class bsi_queue extends CModule
 
     public function installFiles(): bool
     {
+        CopyDirFiles(__DIR__ . '/admin', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin');
+        CopyDirFiles(__DIR__ . '/js', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js', true, true);
+        CopyDirFiles(__DIR__ . '/themes', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/themes', true, true);
+
         return true;
     }
 
     public function uninstallFiles(): bool
     {
+        DeleteDirFiles(__DIR__ . '/admin', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin');
+        DeleteDirFiles(__DIR__ . '/js', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/js');
+        DeleteDirFiles(__DIR__ . '/themes/.default/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/themes/.default/');
+        DeleteDirFilesEx('/bitrix/themes/.default/icons/bsi.queue/');
+
         return true;
     }
 }

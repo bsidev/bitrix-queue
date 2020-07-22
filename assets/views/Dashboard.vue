@@ -23,6 +23,7 @@
                     <stat-panel
                         v-else
                         :type="hasConsumers ? 'success' : 'danger'"
+                        :title="!hasConsumers ? $t('tooltip.notFoundConsumers') : ''"
                     >
                         {{ hasConsumers ? $t('label.ok') : $t('label.problem') }}
                     </stat-panel>

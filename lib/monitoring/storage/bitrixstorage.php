@@ -2,6 +2,7 @@
 
 namespace Bsi\Queue\Monitoring\Storage;
 
+use Bitrix\Main\Application;
 use Bitrix\Main\Type\DateTime;
 use Bsi\Queue\Exception\InvalidArgumentException;
 use Bsi\Queue\Exception\LogicException;
@@ -10,7 +11,6 @@ use Bsi\Queue\Monitoring\Adapter\Bitrix\BitrixMessageStatTable;
 use Bsi\Queue\Monitoring\MessageStatuses;
 use Bsi\Queue\Stamp\UuidStamp;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
@@ -35,7 +35,6 @@ class BitrixStorage implements StorageInterface
             throw new LogicException('No UuidStamp found on the Envelope.');
         }
         $uuid = $uuidStamp->getUuid()->toString();
-
 
         $encodedMessage = $this->serializer->encode($envelope);
 
@@ -95,6 +94,21 @@ class BitrixStorage implements StorageInterface
         $result = BitrixMessageStatTable::update($row['ID'], $data);
         if (!$result->isSuccess()) {
             throw new RuntimeException(implode("\n", $result->getErrorMessages()));
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function cleanUpStats(int $lifetimeInDays): void
+    {
+        $periodInSeconds = $lifetimeInDays * 24 * 3600;
+        if ($periodInSeconds > 0) {
+            $connection = Application::getConnection();
+            $datetime = $connection->getSqlHelper()->addSecondsToDateTime('-' . $periodInSeconds);
+
+            $sql = 'DELETE FROM `' . BitrixMessageStatTable::getTableName() . '` WHERE `SENT_AT` <= ' . $datetime;
+            $connection->query($sql);
         }
     }
 }

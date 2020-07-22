@@ -22,7 +22,8 @@ export default {
         errors: 'Ошибки'
     },
     tooltip: {
-        autoUpdate: 'Автоматическое обновление'
+        autoUpdate: 'Автоматическое обновление',
+        notFoundConsumers: 'Не обнаружено активных подписчиков'
     },
     enums: {
         status: {

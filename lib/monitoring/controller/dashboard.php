@@ -25,7 +25,8 @@ class Dashboard extends AbstractController
     public function __construct(Request $request = null)
     {
         parent::__construct($request);
-        $this->messageStatsRepository = $this->adapter->getMessageStatsRepository();
+
+        $this->messageStatsRepository = $this->getAdapter()->getMessageStatsRepository();
         $this->consumerCounter = new ConsumerCounter();
     }
 
@@ -77,17 +78,11 @@ class Dashboard extends AbstractController
             ['status' => MessageStatuses::HANDLED, 'values' => []],
             ['status' => MessageStatuses::FAILED, 'values' => []],
         ];
-        // TODO
         for ($ts = $fromTs; $ts <= $toTs; $ts += $interval) {
-//            $series[0]['values'][] = [$ts, $sentDataset[$ts] ?? 0];
-//            $series[1]['values'][] = [$ts, $receivedDataset[$ts] ?? 0];
-//            $series[2]['values'][] = [$ts, $handledDataset[$ts] ?? 0];
-//            $series[3]['values'][] = [$ts, $failedDataset[$ts] ?? 0];
-
-            $series[0]['values'][] = [$ts, random_int(0, 100)];
-            $series[1]['values'][] = [$ts, random_int(0, 25)];
-            $series[2]['values'][] = [$ts, random_int(0, 15)];
-            $series[3]['values'][] = [$ts, random_int(0, 5)];
+            $series[0]['values'][] = [$ts, $sentDataset[$ts] ?? 0];
+            $series[1]['values'][] = [$ts, $receivedDataset[$ts] ?? 0];
+            $series[2]['values'][] = [$ts, $handledDataset[$ts] ?? 0];
+            $series[3]['values'][] = [$ts, $failedDataset[$ts] ?? 0];
         }
 
         return $series;

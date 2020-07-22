@@ -21,4 +21,9 @@ abstract class AbstractController extends Controller
 
         $this->adapter = Queue::getInstance()->getContainer()->get(AdapterInterface::class);
     }
+
+    public function getAdapter(): AdapterInterface
+    {
+        return $this->adapter;
+    }
 }

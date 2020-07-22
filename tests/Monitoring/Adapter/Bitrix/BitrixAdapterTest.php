@@ -3,7 +3,7 @@
 namespace Bsi\Queue\Tests\Monitoring\Adapter\Bitrix;
 
 use Bsi\Queue\Monitoring\Adapter\Bitrix\BitrixAdapter;
-use Bsi\Queue\Monitoring\Repository\BitrixMetricRepository;
+use Bsi\Queue\Monitoring\Repository\BitrixMessageStatsRepository;
 use Bsi\Queue\Monitoring\Storage\BitrixStorage;
 use Bsi\Queue\Tests\AbstractTestCase;
 
@@ -18,6 +18,6 @@ class BitrixAdapterTest extends AbstractTestCase
     public function testGetMetricRepository(): void
     {
         $adapter = new BitrixAdapter();
-        $this->assertInstanceOf(BitrixMetricRepository::class, $adapter->getMetricRepository());
+        $this->assertInstanceOf(BitrixMessageStatsRepository::class, $adapter->getMessageStatsRepository());
     }
 }

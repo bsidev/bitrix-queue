@@ -30,4 +30,11 @@ interface StorageInterface
         string $transportName,
         \Throwable $error = null
     ): void;
+
+    /**
+     * Removes old stats.
+     *
+     * @param int $lifetimeInDays
+     */
+    public function cleanUpStats(int $lifetimeInDays): void;
 }
