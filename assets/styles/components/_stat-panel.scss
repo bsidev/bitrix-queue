@@ -1,0 +1,26 @@
+.c-stat-panel {
+    &__value {
+        font-size: 30px;
+        line-height: 1;
+        box-sizing: border-box;
+        padding: 10px 15px 15px;
+        text-align: center;
+        color: $color-text-primary;
+    }
+
+    &--success &__value {
+        color: $color-success;
+    }
+
+    &--warning &__value {
+        color: $color-warning;
+    }
+
+    &--danger &__value {
+        color: $color-danger;
+    }
+
+    &--info &__value {
+        color: $color-info;
+    }
+}

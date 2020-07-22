@@ -5,7 +5,6 @@ namespace Bsi\Queue\Transport\Bitrix;
 use Bitrix\Main\Application;
 use Bitrix\Main\ORM\Query\Query;
 use Bitrix\Main\Type\DateTime;
-use Bsi\Queue\Entity\MessageTable;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
 
@@ -46,6 +45,7 @@ class Connection
         }
 
         $configuration = [];
+        /** @noinspection AdditionOperationOnArraysInspection */
         $configuration += $query + $options + static::DEFAULT_OPTIONS;
 
         $optionsExtraKeys = array_diff(array_keys($options), array_keys(static::DEFAULT_OPTIONS));
@@ -148,7 +148,7 @@ class Connection
             $query->setLimit($limit);
         }
 
-        return $query->fetchAll();
+        return $query->exec()->fetchAll();
     }
 
     public function find(int $id): ?array

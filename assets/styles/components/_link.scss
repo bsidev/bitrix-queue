@@ -1,0 +1,13 @@
+.c-link {
+    cursor: pointer;
+    text-decoration: none;
+    color: $color-link-default;
+
+    &:hover, &:active, &:focus, &:visited {
+        color: $color-link-default;
+    }
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

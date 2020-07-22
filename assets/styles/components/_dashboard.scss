@@ -1,0 +1,11 @@
+.c-dashboard {
+    &__panel {
+        display: flex;
+        justify-content: flex-end;
+        margin: -41px -5px 20px 0;
+    }
+
+    & > .el-row {
+        margin-bottom: 20px;
+    }
+}

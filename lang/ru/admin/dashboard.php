@@ -1,0 +1,3 @@
+<?php
+
+$MESS['BSI_QUEUE_ADMIN_DASHBOARD_TITLE'] = 'Дашборд';

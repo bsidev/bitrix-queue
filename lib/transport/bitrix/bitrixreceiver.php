@@ -126,14 +126,14 @@ class BitrixReceiver implements ReceiverInterface, MessageCountAwareInterface, L
                 'headers' => $data['HEADERS'],
             ]);
         } catch (MessageDecodingFailedException $exception) {
-            $this->connection->reject($data['ID']);
+            $this->connection->reject((int) $data['ID']);
 
             throw $exception;
         }
 
         return $envelope->with(
-            new BitrixReceivedStamp($data['ID']),
-            new TransportMessageIdStamp($data['ID'])
+            new BitrixReceivedStamp((int) $data['ID']),
+            new TransportMessageIdStamp((int) $data['ID'])
         );
     }
 }

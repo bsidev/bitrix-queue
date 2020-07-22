@@ -1,0 +1,73 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "encore dev --watch",
+    "build": "encore production --progress",
+    "lint": "eslint 'assets/**/*.{js,vue}' --quiet --fix"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.10.4",
+    "@babel/runtime": "^7.10.4",
+    "@symfony/webpack-encore": "^0.30.2",
+    "apexcharts": "^3.19.3",
+    "autoprefixer": "^9.8.4",
+    "axios": "^0.19.2",
+    "babel-eslint": "^10.1.0",
+    "babel-plugin-component": "^1.1.1",
+    "core-js": "^3.6.5",
+    "element-ui": "^2.13.2",
+    "eslint": "^7.4.0",
+    "eslint-loader": "^4.0.2",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-vue": "^6.2.2",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
+    "node-sass": "^4.14.1",
+    "phpunserialize": "^1.0.1",
+    "postcss-loader": "^3.0.0",
+    "qs": "^6.9.4",
+    "sass-loader": "^8.0.0",
+    "vue": "^2.6.11",
+    "vue-apexcharts": "^1.6.0",
+    "vue-i18n": "^8.18.2",
+    "vue-json-pretty": "^1.6.5",
+    "vue-loader": "^15.9.3",
+    "vue-template-compiler": "^2.6.11",
+    "webpack-notifier": "^1.6.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module",
+      "parser": "babel-eslint"
+    },
+    "env": {
+      "browser": true,
+      "es6": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:vue/recommended"
+    ],
+    "rules": {
+      "vue/html-indent": ["error", 4]
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "assets/**/*.{js,vue}": [
+      "yarn run lint"
+    ]
+  }
+}

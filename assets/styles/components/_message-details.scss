@@ -1,0 +1,26 @@
+.c-message-details {
+
+
+    padding: 0 20px;
+
+    &__summary {
+        padding: 0 10px;
+
+        .el-row {
+            padding: 10px 0;
+
+            &:nth-child(odd) {
+                background-color: $color-bg-gray;
+            }
+        }
+
+        .el-col:first-child {
+            color: $color-text-secondary;
+        }
+    }
+
+    &__data {
+        height: 100%;
+        background-color: $color-bg-gray;
+    }
+}

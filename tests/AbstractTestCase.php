@@ -33,10 +33,7 @@ abstract class AbstractTestCase extends TestCase
     {
         $mock = Mockery::mock('overload:Bitrix\Main\Application');
 
-        $mock->shouldReceive('getInstance')
-            ->andReturnUsing(function () {
-                return new \Bitrix\Main\Application();
-            });
+        $mock->shouldReceive('getInstance')->andReturnSelf();
 
         $mock->shouldReceive('getCache')
             ->andReturnUsing(function () {
@@ -75,22 +72,9 @@ abstract class AbstractTestCase extends TestCase
                 };
             });
 
-        $mock->shouldReceive('getConnection')
-            ->andReturnUsing(function () {
-                return new class () {
-                    public function startTransaction(): void
-                    {
-                    }
-
-                    public function commitTransaction(): void
-                    {
-                    }
-
-                    public function rollbackTransaction(): void
-                    {
-                    }
-                };
-            });
+        $mock->shouldReceive('getConnection->startTransaction');
+        $mock->shouldReceive('getConnection->commitTransaction');
+        $mock->shouldReceive('getConnection->rollbackTransaction');
     }
 
     protected function injectBitrixDateTimeMock(): void

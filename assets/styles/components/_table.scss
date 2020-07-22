@@ -1,0 +1,24 @@
+.c-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    td, th {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ebeef5;
+        background-color: #fff;
+    }
+
+    th {
+        font-weight: 700;
+        color: $color-text-secondary;
+    }
+
+    td {
+        color: $color-text-regular;
+    }
+
+    &--striped tbody tr:nth-child(odd) td {
+        background-color: $color-bg-gray;
+    }
+}

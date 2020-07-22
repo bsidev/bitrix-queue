@@ -2,10 +2,10 @@
 
 namespace Bsi\Queue\Tests\Transport\Bitrix;
 
-use Bsi\Queue\Entity\MessageTable;
 use Bsi\Queue\Tests\AbstractTestCase;
 use Bsi\Queue\Tests\Fixtures\DummyMessage;
 use Bsi\Queue\Transport\Bitrix\Connection;
+use Bsi\Queue\Transport\Bitrix\MessageTable;
 use Mockery;
 use Symfony\Component\Messenger\Exception\InvalidArgumentException;
 use Symfony\Component\Messenger\Exception\TransportException;
@@ -14,18 +14,15 @@ class ConnectionTest extends AbstractTestCase
 {
     public function testGet(): void
     {
-        $this->getDataManagerMock();
-        $messageTable = $this->getMessageTableMock();
-        $messageTable->shouldReceive('update')
-            ->andReturnUsing(function () {
-                return $this->getBitrixOrmResultMock(true);
-            });
-        $result = $this->getResultMock([
+        $query = $this->getQueryMock();
+        $query->shouldReceive('exec->fetch')->andReturn([
             'ID' => 1,
             'BODY' => '{"message":"foo"}',
             'HEADERS' => ['type' => DummyMessage::class],
         ]);
-        $this->getQueryMock($result);
+
+        $messageTable = $this->getMessageTableMock($query);
+        $messageTable->shouldReceive('update->isSuccess')->andReturn(true);
 
         $connection = new Connection();
         $bitrixEnvelope = $connection->get();
@@ -36,10 +33,10 @@ class ConnectionTest extends AbstractTestCase
 
     public function testGetIfQueueIsEmpty(): void
     {
-        $this->getDataManagerMock();
-        $this->getMessageTableMock();
-        $result = $this->getResultMock(null);
-        $this->getQueryMock($result);
+        $query = $this->getQueryMock();
+        $query->shouldReceive('exec->fetch')->andReturnNull();
+
+        $this->getMessageTableMock($query);
 
         $connection = new Connection();
         $bitrixEnvelope = $connection->get();
@@ -50,11 +47,10 @@ class ConnectionTest extends AbstractTestCase
     {
         $this->expectException(TransportException::class);
 
-        $messageTable = $this->getMessageTableMock();
-        $messageTable->shouldReceive('delete')
-            ->andReturnUsing(function () {
-                return $this->getBitrixOrmResultMock(false, ['Invalid ID']);
-            });
+        $query = $this->getQueryMock();
+        $messageTable = $this->getMessageTableMock($query);
+        $messageTable->shouldReceive('delete->isSuccess')->andReturnFalse();
+        $messageTable->shouldReceive('delete->getErrorMessages')->andReturn(['Invalid ID']);
 
         $connection = new Connection();
         $connection->ack(0);
@@ -69,9 +65,9 @@ class ConnectionTest extends AbstractTestCase
 
     public function testFind(): void
     {
-        $this->getDataManagerMock();
         $id = 1;
-        $messageTable = $this->getMessageTableMock();
+        $query = $this->getQueryMock();
+        $messageTable = $this->getMessageTableMock($query);
         $messageTable->shouldReceive('getRowById')
             ->andReturn([
                 'ID' => $id,
@@ -88,9 +84,8 @@ class ConnectionTest extends AbstractTestCase
 
     public function testFindAll(): void
     {
-        $this->getDataManagerMock();
         $query = $this->getQueryMock();
-        $query->shouldReceive('fetchAll')->andReturn([
+        $query->shouldReceive('exec->fetchAll')->andReturn([
             [
                 'ID' => 1,
                 'BODY' => '{"message":"foo"}',
@@ -102,7 +97,7 @@ class ConnectionTest extends AbstractTestCase
                 'HEADERS' => ['type' => DummyMessage::class],
             ],
         ]);
-        $this->getMessageTableMock();
+        $this->getMessageTableMock($query);
 
         $connection = new Connection();
         $bitrixEnvelopes = $connection->findAll();
@@ -118,37 +113,28 @@ class ConnectionTest extends AbstractTestCase
 
     public function testGetMessageCount(): void
     {
-        $this->getQueryMock($this->getResultMock(['CNT' => 2]));
-        $this->getMessageTableMock();
+        $query = $this->getQueryMock();
+        $query->shouldReceive('exec->fetch')->andReturn(['CNT' => 2]);
+        $this->getMessageTableMock($query);
 
         $connection = new Connection();
         $count = $connection->getMessageCount();
         $this->assertSame(2, $count);
     }
 
-    private function getMessageTableMock(): Mockery\MockInterface
+    private function getMessageTableMock(Mockery\MockInterface $query): Mockery\MockInterface
     {
         $mock = Mockery::mock('alias:' . MessageTable::class);
 
-        $mock->shouldReceive('getConnectionName')->andReturn('default');
-        $mock->shouldReceive('query')->andReturnUsing(function () {
-            /** @noinspection PhpUndefinedClassInspection */
-            return new \Bitrix\Main\ORM\Query\Query();
+        $mock->shouldReceive('getConnectionName');
+        $mock->shouldReceive('query')->andReturnUsing(function () use ($query) {
+            return $query;
         });
 
         return $mock;
     }
 
-    private function getDataManagerMock(): Mockery\MockInterface
-    {
-        $mock = Mockery::mock('overload:Bitrix\Main\ORM\Data\DataManager');
-
-        $mock->shouldReceive('getConnectionName')->andReturn('default');
-
-        return $mock;
-    }
-
-    private function getQueryMock($result = null): Mockery\MockInterface
+    private function getQueryMock(): Mockery\MockInterface
     {
         $mock = Mockery::mock('overload:Bitrix\Main\ORM\Query\Query');
 
@@ -159,23 +145,7 @@ class ConnectionTest extends AbstractTestCase
         $mock->shouldReceive('whereNull')->andReturnSelf();
         $mock->shouldReceive('addOrder')->andReturnSelf();
         $mock->shouldReceive('setLimit')->andReturnSelf();
-        $mock->shouldReceive('exec')->andReturn($result);
-        $mock->shouldReceive('expr')->andReturnUsing(function () {
-            return new class () {
-                public function count(): void
-                {
-                }
-            };
-        });
-
-        return $mock;
-    }
-
-    private function getResultMock($expectedResult): Mockery\MockInterface
-    {
-        $mock = Mockery::mock('QueryResult');
-
-        $mock->shouldReceive('fetch')->andReturn($expectedResult);
+        $mock->shouldReceive('expr->count');
 
         return $mock;
     }
