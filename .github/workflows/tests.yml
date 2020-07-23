@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore:
     - 'README.md'
+    - 'docs/**'
   pull_request:
   schedule:
     - cron: '0 0 * * *'
