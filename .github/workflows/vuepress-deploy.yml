@@ -1,0 +1,27 @@
+name: vuepress-deploy
+
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+      - '!.github/workflows/vuepress-deploy.yml'
+      - 'docs/**'
+
+jobs:
+  vuepress-deploy:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to Github Pages
+        uses: jenkey2011/vuepress-deploy@master
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          TARGET_REPO: bsidev/bitrix-queue
+          BUILD_SCRIPT: yarn && yarn run docs:build
+          BUILD_DIR: docs/.vuepress/dist/
