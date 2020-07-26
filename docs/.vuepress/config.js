@@ -11,7 +11,8 @@ module.exports = {
                     '/',
                     '/getting-started',
                     '/configuration',
-                    '/handlers-registration',
+                    '/creating-message-handlers',
+                    '/transports-registration',
                     '/monitoring',
                 ]
             },
@@ -21,10 +22,12 @@ module.exports = {
                 sidebarDepth: 0,
                 children: [
                     '/events',
-                    '/transport-factories-registration',
                     '/monitoring-adapters-registration',
                 ]
             },
         ]
-    }
+    },
+    plugins: [
+        ['vuepress-plugin-medium-zoom'],
+    ],
 };

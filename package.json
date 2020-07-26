@@ -36,6 +36,7 @@
     "vue-loader": "^15.9.3",
     "vue-template-compiler": "^2.6.11",
     "vuepress": "^1.5.2",
+    "vuepress-plugin-medium-zoom": "^1.1.8",
     "webpack-notifier": "^1.6.0"
   },
   "eslintConfig": {
