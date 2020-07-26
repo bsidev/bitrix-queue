@@ -76,6 +76,9 @@ class QueueIntegrationTest extends AbstractTestCase
             'routing' => [
                 DummyMessage::class => 'memory',
             ],
+            'monitoring' => [
+                'enabled' => false,
+            ],
         ]);
         $this->getBitrixEventMock();
 
