@@ -126,14 +126,17 @@ class Queue
         $this->booted = true;
     }
 
-    public function addMessageHandler(string $class, array $options = []): void
+    public function addMessageHandler(string $class, array $arguments = [], array $options = []): void
     {
         if (!is_subclass_of($class, MessageHandlerInterface::class)) {
             throw new RuntimeException(sprintf('Class "%s" must implement interface "%s".', $class, MessageHandlerInterface::class));
         }
 
-        $this->container->register($class)
-            ->addTag('messenger.message_handler', $options);
+        $service = $this->container->register($class);
+        foreach ($arguments as $argument) {
+            $service->addArgument($argument);
+        }
+        $service->addTag('messenger.message_handler', $options);
     }
 
     public function registerTransportFactory(string $code, string $class, array $arguments = []): void
