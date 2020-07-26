@@ -7,6 +7,7 @@ use Bitrix\Main\Event;
 use Bitrix\Main\EventResult;
 use Bsi\Queue\Exception\LogicException;
 use Bsi\Queue\Exception\RuntimeException;
+use Bsi\Queue\Monitoring\Adapter\AdapterFactoryInterface;
 use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -52,9 +53,7 @@ class Queue
         'transports' => [],
         'failure_transport' => null,
         'routing' => [],
-        'monitoring' => [
-            'enabled' => false,
-        ],
+        'monitoring' => [],
     ];
     protected const DEFAULT_BUS_CONFIG = [
         'default_middleware' => true,
@@ -150,17 +149,17 @@ class Queue
         $service->addTag('messenger.transport_factory');
     }
 
-    public function registerMonitoringStorageFactory(string $code, string $class, array $arguments = []): void
+    public function registerMonitoringAdapterFactory(string $code, string $class, array $arguments = []): void
     {
-        if (!is_subclass_of($class, StorageFactoryInterface::class)) {
-            throw new RuntimeException(sprintf('Class "%s" must implement interface "%s".', $class, StorageFactoryInterface::class));
+        if (!is_subclass_of($class, AdapterFactoryInterface::class)) {
+            throw new RuntimeException(sprintf('Class "%s" must implement interface "%s".', $class, AdapterFactoryInterface::class));
         }
 
-        $service = $this->container->register('monitoring.storage.' . $code . '.factory', $class);
+        $service = $this->container->register('monitoring.adapter.' . $code . '.factory', $class);
         foreach ($arguments as $argument) {
             $service->addArgument($argument);
         }
-        $service->addTag('monitoring.storage_factory');
+        $service->addTag('monitoring.adapter_factory');
     }
 
     public function dispatchMessage(object $message, ?string $busName = null, array $stamps = []): Envelope
