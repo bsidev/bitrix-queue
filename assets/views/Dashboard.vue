@@ -144,7 +144,11 @@
                 summary: {},
                 chartSeries: [],
                 chartOptions: {
-                    colors: ['#909399', '#E6A23C', '#67C23A', '#F56C6C']
+                    colors: ['#909399', '#E6A23C', '#67C23A', '#F56C6C'],
+                    yaxis: {
+                        forceNiceScale: true,
+                        min: 0
+                    }
                 },
                 recentMessages: {
                     data: [],

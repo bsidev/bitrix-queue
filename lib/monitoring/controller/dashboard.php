@@ -72,20 +72,12 @@ class Dashboard extends AbstractController
         $handledDataset = $this->messageStatsRepository->getHandledChartDataset($fromDate, $toDate, $interval);
         $failedDataset = $this->messageStatsRepository->getFailedChartDataset($fromDate, $toDate, $interval);
 
-        $series = [
-            ['status' => MessageStatuses::SENT, 'values' => []],
-            ['status' => MessageStatuses::RECEIVED, 'values' => []],
-            ['status' => MessageStatuses::HANDLED, 'values' => []],
-            ['status' => MessageStatuses::FAILED, 'values' => []],
+        return [
+            ['status' => MessageStatuses::SENT, 'values' => $sentDataset],
+            ['status' => MessageStatuses::RECEIVED, 'values' => $receivedDataset],
+            ['status' => MessageStatuses::HANDLED, 'values' => $handledDataset],
+            ['status' => MessageStatuses::FAILED, 'values' => $failedDataset],
         ];
-        for ($ts = $fromTs; $ts <= $toTs; $ts += $interval) {
-            $series[0]['values'][] = [$ts, $sentDataset[$ts] ?? 0];
-            $series[1]['values'][] = [$ts, $receivedDataset[$ts] ?? 0];
-            $series[2]['values'][] = [$ts, $handledDataset[$ts] ?? 0];
-            $series[3]['values'][] = [$ts, $failedDataset[$ts] ?? 0];
-        }
-
-        return $series;
     }
 
     public function recentMessagesAction(string $from, string $to, int $pageSize = 10, int $page = 1): ?array
