@@ -8,7 +8,6 @@ use Bitrix\Main\Type\DateTime;
 use Bsi\Queue\Monitoring\Adapter\Bitrix\BitrixMessageStatTable;
 use Bsi\Queue\Monitoring\MessageStats;
 use Bsi\Queue\Monitoring\MessageStatsCollection;
-use Bsi\Queue\Monitoring\MessageStatuses;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
@@ -41,7 +40,6 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
     public function countSent(\DateTimeInterface $from, \DateTimeInterface $to): int
     {
         return (int) BitrixMessageStatTable::getCount([
-            'STATUS' => MessageStatuses::SENT,
             '><SENT_AT' => $this->getDateRange($from, $to),
         ]);
     }
@@ -52,8 +50,7 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
     public function countReceived(\DateTimeInterface $from, \DateTimeInterface $to): int
     {
         return (int) BitrixMessageStatTable::getCount([
-            'STATUS' => MessageStatuses::RECEIVED,
-            '><SENT_AT' => $this->getDateRange($from, $to),
+            '><RECEIVED_AT' => $this->getDateRange($from, $to),
         ]);
     }
 
@@ -63,8 +60,7 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
     public function countHandled(\DateTimeInterface $from, \DateTimeInterface $to): int
     {
         return (int) BitrixMessageStatTable::getCount([
-            'STATUS' => MessageStatuses::HANDLED,
-            '><SENT_AT' => $this->getDateRange($from, $to),
+            '><HANDLED_AT' => $this->getDateRange($from, $to),
         ]);
     }
 
@@ -74,8 +70,7 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
     public function countFailed(\DateTimeInterface $from, \DateTimeInterface $to): int
     {
         return (int) BitrixMessageStatTable::getCount([
-            'STATUS' => MessageStatuses::FAILED,
-            '><SENT_AT' => $this->getDateRange($from, $to),
+            '><FAILED_AT' => $this->getDateRange($from, $to),
         ]);
     }
 
