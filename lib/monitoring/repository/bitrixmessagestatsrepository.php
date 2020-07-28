@@ -119,8 +119,16 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
 
         $dbResult = BitrixMessageStatTable::getList([
             'select' => ['*'],
-            'filter' => ['><SENT_AT' => $this->getDateRange($from, $to)],
-            'order' => ['SENT_AT' => 'DESC'],
+            'filter' => [
+                [
+                    'LOGIC' => 'OR',
+                    ['><SENT_AT' => $this->getDateRange($from, $to)],
+                    ['><RECEIVED_AT' => $this->getDateRange($from, $to)],
+                    ['><HANDLED_AT' => $this->getDateRange($from, $to)],
+                    ['><FAILED_AT' => $this->getDateRange($from, $to)],
+                ],
+            ],
+            'order' => ['SENT_AT' => 'DESC', 'ID' => 'DESC'],
             'limit' => $limit,
             'offset' => $offset,
         ]);
