@@ -23,7 +23,7 @@ class BitrixCacheAdapter implements CacheItemPoolInterface
 
     public function __construct(int $lifetime = 0, string $dir = '/bsi/queue')
     {
-        $this->lifetime = $lifetime > 0 ? $lifetime : PHP_INT_MAX;
+        $this->lifetime = $lifetime > 0 ? $lifetime : 31536000;
         $this->dir = $dir;
         /** @noinspection NullPointerExceptionInspection */
         $this->cache = Application::getInstance()->getCache();

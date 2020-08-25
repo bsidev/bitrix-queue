@@ -84,24 +84,31 @@
 
         <!-- worker event listeners -->
         <service id="messenger.retry.send_failed_message_for_retry_listener" class="Symfony\Component\Messenger\EventListener\SendFailedMessageForRetryListener">
+            <tag name="kernel.event_subscriber"/>
             <argument/> <!-- senders service locator -->
             <argument type="service" id="messenger.retry_strategy_locator"/>
             <argument type="service" id="logger" on-invalid="ignore"/>
         </service>
 
         <service id="messenger.failure.send_failed_message_to_failure_transport_listener" class="Symfony\Component\Messenger\EventListener\SendFailedMessageToFailureTransportListener">
+            <tag name="kernel.event_subscriber"/>
             <argument/> <!-- Failure transport -->
             <argument type="service" id="logger" on-invalid="ignore"/>
         </service>
 
-        <service id="messenger.listener.dispatch_pcntl_signal_listener" class="Symfony\Component\Messenger\EventListener\DispatchPcntlSignalListener"/>
+        <service id="messenger.listener.dispatch_pcntl_signal_listener" class="Symfony\Component\Messenger\EventListener\DispatchPcntlSignalListener">
+            <tag name="kernel.event_subscriber"/>
+        </service>
 
         <service id="messenger.listener.stop_worker_on_restart_signal_listener" class="Symfony\Component\Messenger\EventListener\StopWorkerOnRestartSignalListener">
+            <tag name="kernel.event_subscriber"/>
             <argument type="service" id="cache.messenger.restart_workers_signal"/>
             <argument type="service" id="logger" on-invalid="ignore"/>
         </service>
 
-        <service id="messenger.listener.stop_worker_on_sigterm_signal_listener" class="Symfony\Component\Messenger\EventListener\StopWorkerOnSigtermSignalListener"/>
+        <service id="messenger.listener.stop_worker_on_sigterm_signal_listener" class="Symfony\Component\Messenger\EventListener\StopWorkerOnSigtermSignalListener">
+            <tag name="kernel.event_subscriber"/>
+        </service>
 
         <!-- routable message bus -->
         <service id="messenger.routable_message_bus" class="Symfony\Component\Messenger\RoutableMessageBus" public="true">
