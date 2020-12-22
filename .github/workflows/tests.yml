@@ -8,8 +8,6 @@ on:
       - '.github/workflows/**'
       - '!.github/workflows/tests.yml'
   pull_request:
-  schedule:
-    - cron: '0 0 */2 * *'
 
 jobs:
   tests:
