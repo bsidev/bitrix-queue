@@ -13,7 +13,8 @@ module.exports = {
                     '/configuration',
                     '/creating-message-handlers',
                     '/transports-registration',
-                    '/monitoring',
+                    '/supervisor-configuration',
+                    '/monitoring'
                 ]
             },
             {
@@ -22,12 +23,12 @@ module.exports = {
                 sidebarDepth: 0,
                 children: [
                     '/events',
-                    '/monitoring-adapters-registration',
+                    '/monitoring-adapters-registration'
                 ]
-            },
+            }
         ]
     },
     plugins: [
-        ['vuepress-plugin-medium-zoom'],
-    ],
+        ['vuepress-plugin-medium-zoom']
+    ]
 };

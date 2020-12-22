@@ -30,6 +30,16 @@ if (Loader::includeModule('bsi.queue')) {
 Обработчики должны добавляться до инициализации системы очередей (вызова метода `boot()`).
 :::
 
+Пример отправки сообщения:
+
+```php
+<?php
+
+use Bsi\Queue\Queue;
+
+Queue::getInstance()->dispatchMessage(new MyMessage('Hello, world'));
+```
+
 **Ссылки по теме:**
 
 - [Messenger: Sync & Queued Message Handling](https://symfony.com/doc/current/messenger.html)
