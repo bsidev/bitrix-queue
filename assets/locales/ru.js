@@ -10,7 +10,8 @@ export default {
         transport_name: 'Получатель',
         buses: 'Шины',
         problem: 'Проблема',
-        ok: 'ОК'
+        ok: 'ОК',
+        findMessages: 'Поиск сообщений'
     },
     title: {
         status: 'Статус',

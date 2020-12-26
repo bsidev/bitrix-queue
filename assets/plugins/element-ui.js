@@ -8,7 +8,10 @@ import {
     DropdownItem,
     Pagination,
     Tag,
-    Drawer
+    Drawer,
+    Input,
+    Select,
+    Option
 } from 'element-ui';
 import lang from 'element-ui/lib/locale/lang/ru-RU';
 import locale from 'element-ui/lib/locale';
@@ -25,3 +28,6 @@ Vue.use(DropdownItem);
 Vue.use(Pagination);
 Vue.use(Tag);
 Vue.use(Drawer);
+Vue.use(Input);
+Vue.use(Select);
+Vue.use(Option);

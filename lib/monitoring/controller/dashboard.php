@@ -80,13 +80,13 @@ class Dashboard extends AbstractController
         ];
     }
 
-    public function recentMessagesAction(string $from, string $to, int $pageSize = 10, int $page = 1): ?array
+    public function recentMessagesAction(string $from, string $to, int $pageSize = 10, int $page = 1, string $search = ''): ?array
     {
         $fromDate = new \DateTimeImmutable($from);
         $toDate = new \DateTimeImmutable($to);
         $offset = ($page - 1) * $pageSize;
 
-        $collection = $this->messageStatsRepository->getRecentList($fromDate, $toDate, $pageSize, $offset);
+        $collection = $this->messageStatsRepository->getRecentList($fromDate, $toDate, $pageSize, $offset, $search);
 
         $data = [];
         /** @var MessageStats $messageStats */
@@ -123,7 +123,7 @@ class Dashboard extends AbstractController
 
         return [
             'data' => $data,
-            'total' => $this->messageStatsRepository->countAll($fromDate, $toDate),
+            'total' => $this->messageStatsRepository->countAll($fromDate, $toDate, $search),
         ];
     }
 }

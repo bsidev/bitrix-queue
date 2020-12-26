@@ -87,6 +87,8 @@
                         :page-size="recentMessages.pageSize"
                         @message-select="handleMessageSelect"
                         @paginate="handleRecentMessagesPaginate"
+                        @page-size-change="handleRecentMessagesPageSizeChange"
+                        @search="handleRecentMessagesSearch"
                     />
                 </dashboard-panel>
             </el-col>
@@ -109,166 +111,179 @@
 </template>
 
 <script>
-    import ViewMixin from './ViewMixin';
+import ViewMixin from './ViewMixin';
 
-    import AppTimePicker from '../components/AppTimePicker';
-    import AppRefreshPicker from '../components/AppRefreshPicker';
-    import DashboardPanel from '../components/DashboardPanel';
-    import StatPanel from '../components/StatPanel';
-    import ChartPanel from '../components/ChartPanel';
-    import RecentMessagesPanel from '../components/RecentMessagesPanel';
-    import MessageDetails from '../components/MessageDetails';
+import AppTimePicker from '../components/AppTimePicker';
+import AppRefreshPicker from '../components/AppRefreshPicker';
+import DashboardPanel from '../components/DashboardPanel';
+import StatPanel from '../components/StatPanel';
+import ChartPanel from '../components/ChartPanel';
+import RecentMessagesPanel from '../components/RecentMessagesPanel';
+import MessageDetails from '../components/MessageDetails';
 
-    import { fetchFromModule } from '../utils/request';
+import { fetchFromModule } from '../utils/request';
 
-    export default {
-        components: {
-            AppTimePicker,
-            AppRefreshPicker,
-            DashboardPanel,
-            StatPanel,
-            ChartPanel,
-            RecentMessagesPanel,
-            MessageDetails
+export default {
+    components: {
+        AppTimePicker,
+        AppRefreshPicker,
+        DashboardPanel,
+        StatPanel,
+        ChartPanel,
+        RecentMessagesPanel,
+        MessageDetails
+    },
+
+    mixins: [ViewMixin],
+
+    data() {
+        return {
+            timePreset: '-1 hours',
+            refresh: false,
+            refreshTimer: null,
+            refreshDelay: 10000,
+            init: false,
+            summary: {},
+            chartSeries: [],
+            chartOptions: {
+                colors: ['#909399', '#E6A23C', '#67C23A', '#F56C6C'],
+                yaxis: {
+                    forceNiceScale: true,
+                    min: 0
+                }
+            },
+            recentMessages: {
+                data: [],
+                total: 0,
+                pageSize: 10,
+                page: 1,
+                search: ''
+            },
+            drawer: false,
+            drawerMessage: null
+        };
+    },
+
+    computed: {
+        hasConsumers() {
+            return this.summary.consumers && Number(this.summary.consumers) > 0;
+        }
+    },
+
+    watch: {
+        refresh(value) {
+            localStorage['bsi.queue.dashboard.refresh'] = value;
+            this.initAutoUpdate();
+        }
+    },
+
+    created() {
+        let storedTimePreset = localStorage.getItem('bsi.queue.dashboard.timePreset');
+        if (storedTimePreset) {
+            this.timePreset = storedTimePreset;
+        }
+
+        let storedRefreshState = localStorage.getItem('bsi.queue.dashboard.refresh');
+        if (storedRefreshState === 'true') {
+            this.refresh = true;
+        }
+
+        this.fetchData().then(() => {
+            this.init = true;
+        });
+    },
+
+    beforeDestroy() {
+        clearInterval(this.refreshTimer);
+    },
+
+    methods: {
+        fetchData() {
+            return Promise.all([
+                this.fetchSummaryData(),
+                this.fetchChartData(),
+                this.fetchRecentMessagesData()
+            ]);
         },
 
-        mixins: [ViewMixin],
-
-        data() {
-            return {
-                timePreset: '-1 hours',
-                refresh: false,
-                refreshTimer: null,
-                refreshDelay: 10000,
-                init: false,
-                summary: {},
-                chartSeries: [],
-                chartOptions: {
-                    colors: ['#909399', '#E6A23C', '#67C23A', '#F56C6C'],
-                    yaxis: {
-                        forceNiceScale: true,
-                        min: 0
-                    }
-                },
-                recentMessages: {
-                    data: [],
-                    total: 0,
-                    pageSize: 10,
-                    page: 1
-                },
-                drawer: false,
-                drawerMessage: null
-            };
-        },
-
-        computed: {
-            hasConsumers() {
-                return this.summary.consumers && Number(this.summary.consumers) > 0;
-            }
-        },
-
-        watch: {
-            refresh(value) {
-                localStorage['bsi.queue.dashboard.refresh'] = value;
-                this.initAutoUpdate();
-            }
-        },
-
-        created() {
-            let storedTimePreset = localStorage.getItem('bsi.queue.dashboard.timePreset');
-            if (storedTimePreset) {
-                this.timePreset = storedTimePreset;
-            }
-
-            let storedRefreshState = localStorage.getItem('bsi.queue.dashboard.refresh');
-            if (storedRefreshState === 'true') {
-                this.refresh = true;
-            }
-
-            this.fetchData().then(() => {
-                this.init = true;
+        async fetchSummaryData() {
+            this.summary = await fetchFromModule('bsi:queue.api.dashboard.summary', {
+                from: this.timePreset,
+                to: 'now'
             });
         },
 
-        beforeDestroy() {
-            clearInterval(this.refreshTimer);
+        async fetchChartData() {
+            const data = await fetchFromModule('bsi:queue.api.dashboard.queryRange', {
+                from: this.timePreset,
+                to: 'now'
+            });
+
+            this.chartSeries = data.map(item => {
+                return {
+                    name: this.$t(`enums.status.${item.status}`),
+                    data: item.values.map(value => {
+                        value[0] *= 1000;
+                        return value;
+                    })
+                };
+            });
         },
 
-        methods: {
-            fetchData() {
-                return Promise.all([
-                    this.fetchSummaryData(),
-                    this.fetchChartData(),
-                    this.fetchRecentMessagesData()
-                ]);
-            },
+        async fetchRecentMessagesData() {
+            const data = await fetchFromModule('bsi:queue.api.dashboard.recentMessages', {
+                from: this.timePreset,
+                to: 'now',
+                pageSize: this.recentMessages.pageSize,
+                page: this.recentMessages.page,
+                search: this.recentMessages.search
+            });
 
-            async fetchSummaryData() {
-                this.summary = await fetchFromModule('bsi:queue.api.dashboard.summary', {
-                    from: this.timePreset,
-                    to: 'now'
-                });
-            },
+            this.recentMessages.data = data.data;
+            this.recentMessages.total = data.total;
+        },
 
-            async fetchChartData() {
-                const data = await fetchFromModule('bsi:queue.api.dashboard.queryRange', {
-                    from: this.timePreset,
-                    to: 'now'
-                });
-
-                this.chartSeries = data.map(item => {
-                    return {
-                        name: this.$t(`enums.status.${item.status}`),
-                        data: item.values.map(value => {
-                            value[0] *= 1000;
-                            return value;
-                        })
-                    };
-                });
-            },
-
-            async fetchRecentMessagesData() {
-                const data = await fetchFromModule('bsi:queue.api.dashboard.recentMessages', {
-                    from: this.timePreset,
-                    to: 'now',
-                    pageSize: this.recentMessages.pageSize,
-                    page: this.recentMessages.page
-                });
-
-                this.recentMessages.data = data.data;
-                this.recentMessages.total = data.total;
-            },
-
-            initAutoUpdate() {
-                if (this.refresh === true) {
-                    this.refreshTimer = setInterval(this.autoUpdate, this.refreshDelay);
-                } else {
-                    clearInterval(this.refreshTimer);
-                }
-            },
-
-            autoUpdate() {
-                this.fetchData();
-            },
-
-            handleTimePresetChange(value) {
-                localStorage['bsi.queue.dashboard.timePreset'] = value;
-                this.fetchData();
-            },
-
-            handleMessageSelect(message) {
-                this.drawerMessage = message;
-                this.drawer = true;
-            },
-
-            handleRecentMessagesPaginate(value) {
-                this.recentMessages.page = value;
-                this.fetchRecentMessagesData();
-            },
-
-            handleDrawerClosed() {
-                this.drawerMessage = null;
+        initAutoUpdate() {
+            if (this.refresh === true) {
+                this.refreshTimer = setInterval(this.autoUpdate, this.refreshDelay);
+            } else {
+                clearInterval(this.refreshTimer);
             }
+        },
+
+        autoUpdate() {
+            this.fetchData();
+        },
+
+        handleTimePresetChange(value) {
+            localStorage['bsi.queue.dashboard.timePreset'] = value;
+            this.fetchData();
+        },
+
+        handleMessageSelect(message) {
+            this.drawerMessage = message;
+            this.drawer = true;
+        },
+
+        handleRecentMessagesPaginate(value) {
+            this.recentMessages.page = value;
+            this.fetchRecentMessagesData();
+        },
+
+        handleRecentMessagesPageSizeChange(value) {
+            this.recentMessages.pageSize = value;
+            this.recentMessages.page = 1;
+            this.fetchRecentMessagesData();
+        },
+
+        handleRecentMessagesSearch(search) {
+            this.recentMessages.search = search;
+            this.fetchRecentMessagesData();
+        },
+
+        handleDrawerClosed() {
+            this.drawerMessage = null;
         }
-    };
+    }
+};
 </script>

@@ -14,10 +14,11 @@ interface MessageStatsRepositoryInterface
      *
      * @param \DateTimeInterface $from
      * @param \DateTimeInterface $to
+     * @param string $search
      *
      * @return int
      */
-    public function countAll(\DateTimeInterface $from, \DateTimeInterface $to): int;
+    public function countAll(\DateTimeInterface $from, \DateTimeInterface $to, string $search = ''): int;
 
     /**
      * Returns a count of sent messages.
@@ -110,6 +111,7 @@ interface MessageStatsRepositoryInterface
      * @param \DateTimeInterface $to
      * @param int $limit
      * @param int $offset
+     * @param string $search
      *
      * @return MessageStatsCollection
      */
@@ -117,6 +119,7 @@ interface MessageStatsRepositoryInterface
         \DateTimeInterface $from,
         \DateTimeInterface $to,
         int $limit,
-        int $offset
+        int $offset,
+        string $search = ''
     ): MessageStatsCollection;
 }

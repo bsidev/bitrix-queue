@@ -2,12 +2,12 @@
   "entrypoints": {
     "app": {
       "css": [
-        "/bitrix/js/bsi.queue/0.f0df0eb3.css",
-        "/bitrix/js/bsi.queue/app.7169419a.css"
+        "/bitrix/js/bsi.queue/0.368e6a44.css",
+        "/bitrix/js/bsi.queue/app.8f5f92ff.css"
       ],
       "js": [
-        "/bitrix/js/bsi.queue/0.98227e7f.js",
-        "/bitrix/js/bsi.queue/app.19bda1d3.js"
+        "/bitrix/js/bsi.queue/0.905cdeff.js",
+        "/bitrix/js/bsi.queue/app.80dfbef9.js"
       ]
     }
   }

@@ -27,11 +27,16 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function countAll(\DateTimeInterface $from, \DateTimeInterface $to): int
+    public function countAll(\DateTimeInterface $from, \DateTimeInterface $to, string $search = ''): int
     {
-        return (int) BitrixMessageStatTable::getCount([
+        $filter = [
             '><SENT_AT' => $this->getDateRange($from, $to),
-        ]);
+        ];
+        if (($search = trim($search)) !== '') {
+            $filter['%MESSAGE'] = $search;
+        }
+
+        return (int) BitrixMessageStatTable::getCount($filter);
     }
 
     /**
@@ -113,21 +118,28 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
         \DateTimeInterface $from,
         \DateTimeInterface $to,
         int $limit,
-        int $offset
+        int $offset,
+        string $search = ''
     ): MessageStatsCollection {
         $collection = new MessageStatsCollection();
 
+        $filter = [
+            [
+                'LOGIC' => 'OR',
+                ['><SENT_AT' => $this->getDateRange($from, $to)],
+                ['><RECEIVED_AT' => $this->getDateRange($from, $to)],
+                ['><HANDLED_AT' => $this->getDateRange($from, $to)],
+                ['><FAILED_AT' => $this->getDateRange($from, $to)],
+            ],
+        ];
+
+        if (($search = trim($search)) !== '') {
+            $filter['%MESSAGE'] = $search;
+        }
+
         $dbResult = BitrixMessageStatTable::getList([
             'select' => ['*'],
-            'filter' => [
-                [
-                    'LOGIC' => 'OR',
-                    ['><SENT_AT' => $this->getDateRange($from, $to)],
-                    ['><RECEIVED_AT' => $this->getDateRange($from, $to)],
-                    ['><HANDLED_AT' => $this->getDateRange($from, $to)],
-                    ['><FAILED_AT' => $this->getDateRange($from, $to)],
-                ],
-            ],
+            'filter' => $filter,
             'order' => ['SENT_AT' => 'DESC', 'ID' => 'DESC'],
             'limit' => $limit,
             'offset' => $offset,
