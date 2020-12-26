@@ -11,11 +11,14 @@ use Bsi\Queue\Exception\LogicException;
 use Bsi\Queue\Exception\RuntimeException;
 use Bsi\Queue\Monitoring\Adapter\AdapterFactoryInterface;
 use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
+use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
@@ -36,12 +39,14 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
  */
 class Queue
 {
-    /** @var ContainerBuilder */
+    /** @var Container */
     protected $container;
     /** @var array */
     protected $config;
     /** @var bool */
     protected $booted = false;
+    /** @var bool */
+    protected $useCache = false;
 
     /** @var Queue */
     private static $instance;
@@ -120,13 +125,37 @@ class Queue
         $this->container = new ContainerBuilder();
     }
 
-    public function boot(): void
+    public function useCache(bool $useCache): void
+    {
+        $this->useCache = $useCache;
+    }
+
+    public function boot(string $cacheFile = '/bitrix/cache/bsi_queue_container.php'): void
     {
         if ($this->booted === true) {
             return;
         }
 
-        $this->initializeContainer();
+        if ($this->useCache) {
+            $cacheFileFull = $_SERVER['DOCUMENT_ROOT'] . $cacheFile;
+            $containerConfigCache = new ConfigCache($cacheFileFull, false);
+
+            if (!$containerConfigCache->isFresh()) {
+                $this->initializeContainer();
+
+                $dumper = new PhpDumper($this->container);
+                $containerConfigCache->write(
+                    $dumper->dump(['class' => 'BsiQueueCachedContainer']),
+                    $this->container->getResources()
+                );
+            }
+
+            require_once $cacheFileFull;
+            /** @noinspection PhpUndefinedClassInspection */
+            $this->container = new \BsiQueueCachedContainer();
+        } else {
+            $this->initializeContainer();
+        }
 
         $this->booted = true;
     }
@@ -202,7 +231,7 @@ class Queue
         return $envelope;
     }
 
-    public function getContainer(): ContainerBuilder
+    public function getContainer(): Container
     {
         return $this->container;
     }
@@ -264,7 +293,7 @@ class Queue
         $this->container->compile();
     }
 
-    private function registerMessengerConfiguration(array $config, ContainerBuilder $container): void
+    private function registerMessengerConfiguration(array $config, Container $container): void
     {
         $defaultMiddleware = [
             'before' => [
@@ -402,7 +431,7 @@ class Queue
         }
     }
 
-    private function registerMonitoringConfiguration(array $config, ContainerBuilder $container): void
+    private function registerMonitoringConfiguration(array $config, Container $container): void
     {
         $monitoringConfig = array_replace_recursive(static::DEFAULT_MONITORING_CONFIG, $config['monitoring']);
 
