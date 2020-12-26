@@ -5,6 +5,8 @@ namespace Bsi\Queue;
 use Bitrix\Main\Config\Configuration;
 use Bitrix\Main\Event;
 use Bitrix\Main\EventResult;
+use Bsi\Queue\Event\SyncMessageFailedEvent;
+use Bsi\Queue\Event\SyncMessageHandledEvent;
 use Bsi\Queue\Exception\LogicException;
 use Bsi\Queue\Exception\RuntimeException;
 use Bsi\Queue\Monitoring\Adapter\AdapterFactoryInterface;
@@ -18,11 +20,14 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 
@@ -174,12 +179,27 @@ class Queue
         $busName = $busName ?? $this->config['default_bus'];
         /** @var MessageBusInterface|null $bus */
         $bus = $this->container->get($busName);
+        /** @var EventDispatcherInterface $eventDispatcher */
+        $eventDispatcher = $this->container->get('event_dispatcher');
 
         if ($bus === null) {
             throw new RuntimeException(sprintf('Bus "%s" does not exist.', $busName));
         }
 
-        return $bus->dispatch(Envelope::wrap($message, $stamps), $stamps);
+        try {
+            $envelope = $bus->dispatch(Envelope::wrap($message, $stamps), $stamps);
+
+            /** @var HandledStamp|null $handledStamp */
+            $handledStamp = $envelope->last(HandledStamp::class);
+            if ($handledStamp) {
+                $eventDispatcher->dispatch(new SyncMessageHandledEvent($envelope));
+            }
+        } catch (HandlerFailedException $e) {
+            $eventDispatcher->dispatch(new SyncMessageFailedEvent($e->getEnvelope(), $e));
+            throw $e;
+        }
+
+        return $envelope;
     }
 
     public function getContainer(): ContainerBuilder

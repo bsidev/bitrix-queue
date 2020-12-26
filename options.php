@@ -43,7 +43,7 @@ foreach ($allOptions as &$option) {
 unset($option);
 
 $errorMessage = '';
-if ($request->isPost() && strlen($request['Update']) > 0 && check_bitrix_sessid()) {
+if ($request->isPost() && $request['Update'] !== '' && check_bitrix_sessid()) {
     foreach ($allOptions as $option) {
         $value = $request[$option['id']] ?? null;
 

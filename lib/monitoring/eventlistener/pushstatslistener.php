@@ -2,6 +2,8 @@
 
 namespace Bsi\Queue\Monitoring\EventListener;
 
+use Bsi\Queue\Event\SyncMessageFailedEvent;
+use Bsi\Queue\Event\SyncMessageHandledEvent;
 use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
 use Bsi\Queue\Monitoring\MessageStatuses;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -11,6 +13,7 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\BusNameStamp;
+use Symfony\Component\Messenger\Stamp\SentStamp;
 
 /**
  * @author Sergey Balasov <sbalasov@gmail.com>
@@ -77,6 +80,47 @@ class PushStatsListener implements EventSubscriberInterface
         );
     }
 
+    public function onSyncMessageHandled(SyncMessageHandledEvent $event): void
+    {
+        $envelope = $event->getEnvelope();
+
+        if (!$this->isEnvelopeEnabled($envelope)) {
+            return;
+        }
+
+        /** @var SentStamp|null $sentStamp */
+        $sentStamp = $envelope->last(SentStamp::class);
+        $alias = $sentStamp === null ? 'sync' : ($sentStamp->getSenderAlias() ?: $sentStamp->getSenderClass());
+
+        if ($sentStamp === null) {
+            $this->adapter->getStorage()->pushSentMessageStats($envelope);
+        }
+        $this->adapter->getStorage()->pushConsumedMessageStats($envelope, MessageStatuses::HANDLED, $alias);
+    }
+
+    public function onSyncMessageFailed(SyncMessageFailedEvent $event): void
+    {
+        $envelope = $event->getEnvelope();
+
+        if (!$this->isEnvelopeEnabled($envelope)) {
+            return;
+        }
+
+        /** @var SentStamp|null $sentStamp */
+        $sentStamp = $envelope->last(SentStamp::class);
+        $alias = $sentStamp === null ? 'sync' : ($sentStamp->getSenderAlias() ?: $sentStamp->getSenderClass());
+
+        if ($sentStamp === null) {
+            $this->adapter->getStorage()->pushSentMessageStats($envelope);
+        }
+        $this->adapter->getStorage()->pushConsumedMessageStats(
+            $envelope,
+            MessageStatuses::FAILED,
+            $alias,
+            $event->getThrowable()
+        );
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -84,6 +128,8 @@ class PushStatsListener implements EventSubscriberInterface
             WorkerMessageReceivedEvent::class => ['onMessageReceived', 99999],
             WorkerMessageHandledEvent::class => ['onMessageHandled', 99999],
             WorkerMessageFailedEvent::class => ['onMessageFailed', 99999],
+            SyncMessageHandledEvent::class => ['onSyncMessageHandled', 99999],
+            SyncMessageFailedEvent::class => ['onSyncMessageFailed', 99999],
         ];
     }
 
