@@ -278,6 +278,7 @@ export default {
 
         handleRecentMessagesSearch(search) {
             this.recentMessages.search = search;
+            this.recentMessages.page = 1;
             this.fetchRecentMessagesData();
         },
 
