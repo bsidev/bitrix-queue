@@ -45,8 +45,7 @@ class QueueTest extends AbstractTestCase
         array $expectedBuses,
         ?string $expectedDefaultBus,
         array $expectedTransports,
-        ?string $expectedFailureTransport,
-        ?array $expectedRouting
+        ?string $expectedFailureTransport
     ): void {
         $this->getBitrixEventMock([
             $this->getBitrixEventResultMock('1', ['routing' => [DummyMessage::class => 'sync']]),
@@ -59,7 +58,7 @@ class QueueTest extends AbstractTestCase
         $this->assertSame($expectedDefaultBus, $config['default_bus']);
         $this->assertEquals($expectedTransports, $config['transports']);
         $this->assertSame($expectedFailureTransport, $config['failure_transport']);
-        $this->assertEquals($expectedRouting, $config['routing']);
+        $this->assertEquals([DummyMessage::class => ['senders' => ['sync']]], $config['routing']);
     }
 
     public function testContainerBuild(): void

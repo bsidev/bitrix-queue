@@ -24,6 +24,7 @@ class QueueIntegrationTest extends AbstractTestCase
                 'query_bus',
             ],
             'default_bus' => 'command_bus',
+            'monitoring' => ['enabled' => false],
         ]);
         $this->getBitrixEventMock();
 
@@ -46,6 +47,7 @@ class QueueIntegrationTest extends AbstractTestCase
                 'query_bus',
             ],
             'default_bus' => 'command_bus',
+            'monitoring' => ['enabled' => false],
         ]);
         $this->getBitrixEventMock();
 
