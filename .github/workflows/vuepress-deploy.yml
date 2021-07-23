@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Deploy to Github Pages
-        uses: jenkey2011/vuepress-deploy@master
+        uses: jenkey2011/vuepress-deploy@2
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           TARGET_REPO: bsidev/bitrix-queue
