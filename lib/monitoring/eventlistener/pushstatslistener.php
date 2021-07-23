@@ -6,6 +6,7 @@ use Bsi\Queue\Event\SyncMessageFailedEvent;
 use Bsi\Queue\Event\SyncMessageHandledEvent;
 use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
 use Bsi\Queue\Monitoring\MessageStatuses;
+use Bsi\Queue\Monitoring\Stamp\IgnoreMonitoringStamp;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
@@ -148,12 +149,18 @@ class PushStatsListener implements EventSubscriberInterface
 
     private function isEnvelopeEnabled(Envelope $envelope): bool
     {
-        if (empty($this->busNames)) {
-            return true;
+        if ($envelope->last(IgnoreMonitoringStamp::class)) {
+            return false;
         }
 
-        $busNames = $this->getBusesFromEnvelope($envelope);
+        if (!empty($this->busNames)) {
+            $busNames = $this->getBusesFromEnvelope($envelope);
 
-        return count(array_intersect($this->busNames, $busNames)) > 0;
+            if (count(array_intersect($this->busNames, $busNames)) === 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
