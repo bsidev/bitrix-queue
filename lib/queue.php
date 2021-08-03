@@ -353,7 +353,7 @@ class Queue
                     ]
                 )
                 ->addTag('messenger.receiver', ['alias' => $name]);
-            $container->setDefinition($transportId = 'transport.' . $name, $transportDefinition);
+            $container->setDefinition($transportId = 'messenger.transport.' . $name, $transportDefinition);
             $senderAliases[$name] = $transportId;
 
             if ($transport['retry_strategy']['service'] !== null) {
