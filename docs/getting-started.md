@@ -12,8 +12,6 @@
 
 ```json
 {
-  ...
-
   "extra": {
     "installer-paths": {
       "bitrix/modules/{$name}/": [
@@ -55,3 +53,13 @@ if (Loader::includeModule('bsi.queue')) {
     $queue->boot();
 }
 ```
+
+## Запуск воркера
+
+Для запуска обработки сообщений используется консольный скрипт:
+
+```
+php bitrix/modules/bsi.queue/bin/console messenger:consume async --time-limit=3600
+```
+
+[Consuming Messages (Running the Worker)](https://symfony.com/doc/current/messenger.html#consuming-messages-running-the-worker)
