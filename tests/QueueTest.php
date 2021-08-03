@@ -58,8 +58,8 @@ class QueueTest extends AbstractTestCase
         $this->assertArrayHasKey('query_bus', $buses);
 
         $transports = $container->findTaggedServiceIds('messenger.receiver');
-        $this->assertArrayHasKey('transport.sync', $transports);
-        $this->assertArrayHasKey('transport.failed', $transports);
+        $this->assertArrayHasKey('messenger.transport.sync', $transports);
+        $this->assertArrayHasKey('messenger.transport.failed', $transports);
     }
 
     public function testTransportFactoryRegister(): void
