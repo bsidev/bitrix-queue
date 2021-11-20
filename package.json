@@ -14,7 +14,7 @@
     "@vuepress/plugin-medium-zoom": "^1.8.2",
     "apexcharts": "^3.24.0",
     "autoprefixer": "^9.8.4",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "babel-eslint": "^10.1.0",
     "babel-plugin-component": "^1.1.1",
     "cache-loader": "^4.1.0",
