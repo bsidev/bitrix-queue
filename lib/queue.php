@@ -13,6 +13,7 @@ use Bsi\Queue\Monitoring\Adapter\AdapterFactoryInterface;
 use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\Container;
@@ -280,6 +281,7 @@ class Queue
         $this->container->addObjectResource($this);
         $this->container->addCompilerPass(new RegisterListenersPass());
         $this->container->addCompilerPass(new MessengerPass());
+        $this->container->addCompilerPass(new AddConsoleCommandPass());
 
         $this->container->register('event_dispatcher', EventDispatcher::class)->setPublic(true);
 
