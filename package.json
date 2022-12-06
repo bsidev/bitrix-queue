@@ -29,7 +29,7 @@
     "node-sass": "^7.0.0",
     "phpunserialize": "^1.0.1",
     "postcss-loader": "^4.0.0",
-    "qs": "^6.9.4",
+    "qs": "^6.10.3",
     "sass-loader": "^10.0.0",
     "vue": "^2.6.11",
     "vue-apexcharts": "^1.6.0",
