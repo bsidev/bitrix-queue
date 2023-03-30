@@ -59,6 +59,10 @@
     "fix": "phpcbf"
   },
   "config": {
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "composer/installers": true,
+      "php-http/discovery": true
+    }
   }
 }
