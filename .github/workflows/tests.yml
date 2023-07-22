@@ -1,42 +1,28 @@
 name: tests
 
 on:
+  pull_request: ~
   push:
     paths-ignore:
       - 'README.md'
       - 'docs/**'
       - '.github/workflows/**'
       - '!.github/workflows/tests.yml'
-  pull_request:
 
 jobs:
   tests:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
         php: [7.2, 7.3, 7.4, 8.0, 8.1, 8.2]
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Validate composer.json and composer.lock
-        run: composer validate
-
-      - name: Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v2
+      - uses: actions/checkout@v3.3.0
+      - uses: shivammathur/setup-php@v2
         with:
-          path: vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.json') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
-
-      - name: Install dependencies
-        if: steps.composer-cache.outputs.cache-hit != 'true'
-        run: composer install --prefer-dist --no-progress --no-suggest
-
-      - name: Run test suite
-        run: composer run-script test
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+      - uses: ramsey/composer-install@v2
+        with:
+          composer-options: --optimize-autoloader
+      - run: composer test -- --colors=always
