@@ -1,0 +1,42 @@
+name: Continuous Integration
+
+on:
+  pull_request: ~
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+
+jobs:
+  composer-validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ 8.2 ]
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: php-actions/composer@v6
+        with:
+          command: composer validate --strict --ansi
+
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ 8.2 ]
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: php-actions/composer@v6
+        with:
+          command: composer lint
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [7.2, 7.3, 7.4, 8.0, 8.1, 8.2]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: php-actions/composer@v6
+      - run: composer test -- --colors=always
