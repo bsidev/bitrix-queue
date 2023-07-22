@@ -12,7 +12,7 @@ jobs:
   vuepress-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.3
+      - uses: actions/checkout@v3
       - uses: jenkey2011/vuepress-deploy@v2.0.0
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
