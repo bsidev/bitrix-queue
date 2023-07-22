@@ -2,8 +2,6 @@
 
 namespace Bsi\Queue\Monitoring;
 
-use Symfony\Component\Process\Process;
-
 /**
  * @author Sergey Balasov <sbalasov@gmail.com>
  */
@@ -18,14 +16,8 @@ class ConsumerCounter
      */
     public function get(string $command = 'messenger:consume'): int
     {
-        $process = Process::fromShellCommandline(
-            "ps aux | grep -v grep | grep '{$command}'",
-            null,
-            ['COLUMNS' => '2000']
-        );
+        $output = shell_exec(sprintf('ps aux | grep -v grep | grep \'%s\'', escapeshellarg($command)));
 
-        $process->run();
-
-        return substr_count($process->getOutput(), $command);
+        return substr_count($output ?: '', $command);
     }
 }
