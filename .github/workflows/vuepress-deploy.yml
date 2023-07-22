@@ -10,17 +10,10 @@ on:
 
 jobs:
   vuepress-deploy:
-
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Deploy to Github Pages
-        uses: jenkey2011/vuepress-deploy@v2.0.0
+      - uses: actions/checkout@v3.3.0
+      - uses: jenkey2011/vuepress-deploy@v2.0.0
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           TARGET_REPO: bsidev/bitrix-queue
