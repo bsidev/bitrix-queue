@@ -412,13 +412,84 @@ class Queue
         $container->getDefinition('messenger.retry_strategy_locator')
             ->replaceArgument(0, $transportRetryReferences);
 
+        $failureTransportsContainer = new ContainerBuilder();
+        $failureTransportsDefinitions = [];
         if ($config['failure_transport']) {
+
             if (!isset($senderReferences[$config['failure_transport']])) {
                 throw new LogicException(sprintf('Invalid Messenger configuration: the failure transport "%s" is not a valid transport or service id.', $config['failure_transport']));
             }
 
+            $failureTransportsDefinitions[$config['failure_transport']]
+                = (new Definition(TransportInterface::class))
+                ->setFactory(
+                    [
+                        $container->get('messenger.transport_factory'),
+                        'createTransport',
+                    ]
+                )
+                ->setArguments(
+                    [
+                        $config['transports'][$config['failure_transport']]['dsn'],
+                        $config['transports'][$config['failure_transport']]['options']
+                        + ['transport_name' => $config['failure_transport']],
+                        $container->get(
+                            $config['transports'][$config['failure_transport']]['serializer']
+                            ?? 'messenger.default_serializer'
+                        ),
+                    ]
+                );
+        }
+
+        foreach ($senderAliases as $name => $alias) {
+            if (isset($config['transports'][$name]['failure_transport'])) {
+                if ( ! array_key_exists(
+                    $config['transports'][$name]['failure_transport'],
+                    $failureTransportsDefinitions
+                )) {
+                    $failureTransportsDefinitions[$name] = (new Definition(
+                        TransportInterface::class
+                    ))
+                        ->setFactory(
+                            [
+                                $container->get('messenger.transport_factory'),
+                                'createTransport',
+                            ]
+                        )
+                        ->setArguments(
+                            [
+                                $config['transports'][$config['transports'][$name]['failure_transport']]['dsn'],
+                                $config['transports'][$config['transports'][$name]['failure_transport']]['options']
+                                + ['transport_name' => $config['transports'][$name]['failure_transport']],
+                                $container->get(
+                                    $config['transports'][$config['transports'][$name]['failure_transport']]['serializer']
+                                    ?? 'messenger.default_serializer'
+                                ),
+                            ]
+                        );
+                } else {
+                    $failureTransportsDefinitions[$name]
+                        = &$failureTransportsDefinitions[$config['transports'][$name]['failure_transport']];
+                }
+            } else {
+                $failureTransportsDefinitions[$name]
+                    = &$failureTransportsDefinitions[$config['failure_transport']];
+            }
+        }
+
+        foreach (
+            $failureTransportsDefinitions as $name =>
+            $failure_transports_definition
+        ) {
+            $failureTransportsContainer->setDefinition(
+                $name,
+                $failure_transports_definition
+            );
+        }
+
+        if (!empty($failureTransportsDefinitions)) {
             $container->getDefinition('messenger.failure.send_failed_message_to_failure_transport_listener')
-                ->replaceArgument(0, $senderReferences[$config['failure_transport']]);
+                ->replaceArgument(0, $failureTransportsContainer);
             $container->getDefinition('console.command.messenger_failed_messages_retry')
                 ->replaceArgument(0, $config['failure_transport']);
             $container->getDefinition('console.command.messenger_failed_messages_show')
