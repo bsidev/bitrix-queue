@@ -176,6 +176,7 @@ class QueueTest extends AbstractTestCase
                 'async' => [
                     'dsn' => 'redis://localhost:6379/messages',
                     'options' => [],
+                    'failure_transport' => null,
                     'serializer' => null,
                     'retry_strategy' => [
                         'max_retries' => 5,
@@ -188,6 +189,7 @@ class QueueTest extends AbstractTestCase
                 'failed' => [
                     'dsn' => 'bitrix://',
                     'options' => [],
+                    'failure_transport' => null,
                     'serializer' => null,
                     'retry_strategy' => [
                         'max_retries' => 3,
@@ -200,6 +202,7 @@ class QueueTest extends AbstractTestCase
                 'sync' => [
                     'dsn' => 'sync://',
                     'options' => [],
+                    'failure_transport' => null,
                     'serializer' => null,
                     'retry_strategy' => [
                         'max_retries' => 3,

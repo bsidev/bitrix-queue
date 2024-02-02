@@ -72,6 +72,7 @@ class Queue
     ];
     protected const DEFAULT_TRANSPORT_CONFIG = [
         'options' => [],
+        'failure_transport' => null,
         'serializer' => null,
         'retry_strategy' => [
             'max_retries' => 3,
@@ -295,15 +296,19 @@ class Queue
         $this->container->compile();
     }
 
-    private function registerMessengerConfiguration(array $config, Container $container): void
+    private function registerMessengerConfiguration(array $config, ContainerBuilder $container): void
     {
+        if ($config['default_bus'] === null && count($config['buses']) === 1) {
+            $config['default_bus'] = key($config['buses']);
+        }
+
         $defaultMiddleware = [
             'before' => [
-                ['id' => 'add_bus_name_stamp'],
-                ['id' => 'add_uuid_stamp'],
-                ['id' => 'reject_redelivered_message'],
+                ['id' => 'add_bus_name_stamp_middleware'],
+                ['id' => 'add_uuid_stamp_middleware'],
+                ['id' => 'reject_redelivered_message_middleware'],
                 ['id' => 'dispatch_after_current_bus'],
-                ['id' => 'failed_message_processing'],
+                ['id' => 'failed_message_processing_middleware'],
             ],
             'after' => [
                 ['id' => 'send_message'],
@@ -320,7 +325,7 @@ class Queue
                     unset($defaultMiddleware['after'][1]['arguments']);
                 }
 
-                // argument to add_bus_name_stamp
+                // argument to add_bus_name_stamp_middleware
                 $defaultMiddleware['before'][0]['arguments'] = [$busId];
 
                 $middleware = array_merge($defaultMiddleware['before'], $middleware, $defaultMiddleware['after']);
@@ -340,21 +345,45 @@ class Queue
             }
         }
 
+        if (empty($config['transports'])) {
+            $container->removeDefinition('messenger.transport.symfony_serializer');
+            $container->removeDefinition('messenger.transport.amqp.factory');
+            $container->removeDefinition('messenger.transport.redis.factory');
+            $container->removeDefinition('messenger.transport.sqs.factory');
+            $container->removeDefinition('messenger.transport.beanstalkd.factory');
+        }
+
+        $failureTransports = [];
+        if ($config['failure_transport']) {
+            if (!isset($config['transports'][$config['failure_transport']])) {
+                throw new LogicException(sprintf('Invalid Messenger configuration: the failure transport "%s" is not a valid transport or service id.', $config['failure_transport']));
+            }
+
+            $container->setAlias('messenger.failure_transports.default', 'messenger.transport.' . $config['failure_transport']);
+            $failureTransports[] = $config['failure_transport'];
+        }
+
+        $failureTransportsByName = [];
+        foreach ($config['transports'] as $name => $transport) {
+            if ($transport['failure_transport']) {
+                $failureTransports[] = $transport['failure_transport'];
+                $failureTransportsByName[$name] = $transport['failure_transport'];
+            } elseif ($config['failure_transport']) {
+                $failureTransportsByName[$name] = $config['failure_transport'];
+            }
+        }
+
         $senderAliases = [];
         $transportRetryReferences = [];
         foreach ($config['transports'] as $name => $transport) {
             $serializerId = $transport['serializer'] ?? 'messenger.default_serializer';
-
             $transportDefinition = (new Definition(TransportInterface::class))
                 ->setFactory([new Reference('messenger.transport_factory'), 'createTransport'])
-                ->setArguments(
-                    [
-                        $transport['dsn'],
-                        $transport['options'] + ['transport_name' => $name],
-                        new Reference($serializerId),
-                    ]
-                )
-                ->addTag('messenger.receiver', ['alias' => $name]);
+                ->setArguments([$transport['dsn'], $transport['options'] + ['transport_name' => $name], new Reference($serializerId)])
+                ->addTag('messenger.receiver', [
+                        'alias' => $name,
+                        'is_failure_transport' => in_array($name, $failureTransports, true),
+                    ]);
             $container->setDefinition($transportId = 'messenger.transport.' . $name, $transportDefinition);
             $senderAliases[$name] = $transportId;
 
@@ -384,6 +413,16 @@ class Queue
             $senderReferences[$serviceId] = new Reference($serviceId);
         }
 
+        foreach ($config['transports'] as $transport) {
+            if ($transport['failure_transport'] && !isset($senderReferences[$transport['failure_transport']])) {
+                throw new LogicException(sprintf('Invalid Messenger configuration: the failure transport "%s" is not a valid transport or service id.', $transport['failure_transport']));
+            }
+        }
+
+        $failureTransportReferencesByTransportName = array_map(static function ($failureTransportName) use ($senderReferences) {
+            return $senderReferences[$failureTransportName];
+        }, $failureTransportsByName);
+
         $messageToSendersMapping = [];
         foreach ($config['routing'] as $message => $messageConfiguration) {
             if ($message !== '*' && !class_exists($message) && !interface_exists($message, false)) {
@@ -404,27 +443,27 @@ class Queue
 
         $container->getDefinition('messenger.senders_locator')
             ->replaceArgument(0, $messageToSendersMapping)
-            ->replaceArgument(1, $sendersServiceLocator);
+            ->replaceArgument(1, $sendersServiceLocator)
+        ;
 
         $container->getDefinition('messenger.retry.send_failed_message_for_retry_listener')
-            ->replaceArgument(0, $sendersServiceLocator);
+            ->replaceArgument(0, $sendersServiceLocator)
+        ;
 
         $container->getDefinition('messenger.retry_strategy_locator')
             ->replaceArgument(0, $transportRetryReferences);
 
-        if ($config['failure_transport']) {
-            if (!isset($senderReferences[$config['failure_transport']])) {
-                throw new LogicException(sprintf('Invalid Messenger configuration: the failure transport "%s" is not a valid transport or service id.', $config['failure_transport']));
-            }
-
-            $container->getDefinition('messenger.failure.send_failed_message_to_failure_transport_listener')
-                ->replaceArgument(0, $senderReferences[$config['failure_transport']]);
+        if ($failureTransports) {
             $container->getDefinition('console.command.messenger_failed_messages_retry')
                 ->replaceArgument(0, $config['failure_transport']);
             $container->getDefinition('console.command.messenger_failed_messages_show')
                 ->replaceArgument(0, $config['failure_transport']);
             $container->getDefinition('console.command.messenger_failed_messages_remove')
                 ->replaceArgument(0, $config['failure_transport']);
+
+            $failureTransportsByTransportNameServiceLocator = ServiceLocatorTagPass::register($container, $failureTransportReferencesByTransportName);
+            $container->getDefinition('messenger.failure.send_failed_message_to_failure_transport_listener')
+                ->replaceArgument(0, $failureTransportsByTransportNameServiceLocator);
         } else {
             $container->removeDefinition('messenger.failure.send_failed_message_to_failure_transport_listener');
             $container->removeDefinition('console.command.messenger_failed_messages_retry');
