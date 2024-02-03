@@ -35,13 +35,9 @@ class Connection
 
     public static function buildConfiguration(string $dsn, array $options = []): array
     {
-        if (($components = parse_url($dsn)) === false) {
-            throw new InvalidArgumentException(sprintf('The given Bitrix DSN "%s" is invalid.', $dsn));
-        }
-
         $query = [];
-        if (isset($components['query'])) {
-            parse_str($components['query'], $query);
+        if ($queryAsString = strstr($dsn, '?')) {
+            parse_str(ltrim($queryAsString, '?'), $query);
         }
 
         $configuration = [];

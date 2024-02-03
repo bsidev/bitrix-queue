@@ -12,6 +12,19 @@ use Symfony\Component\Messenger\Exception\TransportException;
 
 class ConnectionTest extends AbstractTestCase
 {
+    public function testParseConfigurationKeys(): void
+    {
+        $connection = Connection::buildConfiguration('bitrix://?queue_name=foo&redeliver_timeout=2000');
+        $this->assertEquals($connection, ['queue_name' => 'foo', 'redeliver_timeout' => '2000']);
+    }
+
+    public function testInvalidConfigurationKeys(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/Unknown option found/');
+        Connection::buildConfiguration('bitrix://default?dummy_option=1');
+    }
+
     public function testGet(): void
     {
         $query = $this->getQueryMock();
@@ -54,13 +67,6 @@ class ConnectionTest extends AbstractTestCase
 
         $connection = new Connection();
         $connection->ack(0);
-    }
-
-    public function testInvalidConfigurationKeys(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/Unknown option found/');
-        Connection::buildConfiguration('bitrix://default?dummy_option=1');
     }
 
     public function testFind(): void
