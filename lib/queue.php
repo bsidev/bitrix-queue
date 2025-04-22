@@ -168,7 +168,7 @@ class Queue
             throw new RuntimeException(sprintf('Class "%s" must implement interface "%s".', $class, MessageHandlerInterface::class));
         }
 
-        $service = $this->container->register($class);
+        $service = $this->container->register($class, $class);
         foreach ($arguments as $argument) {
             $service->addArgument($argument);
         }
