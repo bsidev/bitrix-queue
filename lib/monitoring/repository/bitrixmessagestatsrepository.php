@@ -189,7 +189,7 @@ class BitrixMessageStatsRepository implements MessageStatsRepositoryInterface
     {
         $envelope = $this->serializer->decode([
             'body' => $data['BODY'],
-            'headers' => $data['HEADERS'],
+            'headers' => $data['HEADERS'] ?? [],
         ]);
 
         return new MessageStats(

@@ -41,7 +41,6 @@ class BitrixMessageStatTable extends DataManager
                 ->configureRequired(true),
 
             (new ArrayField('HEADERS'))
-                ->configureRequired(true)
                 ->configureSerializationPhp(),
 
             (new StringField('TRANSPORT_NAME'))

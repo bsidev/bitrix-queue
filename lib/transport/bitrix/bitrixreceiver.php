@@ -123,7 +123,7 @@ class BitrixReceiver implements ReceiverInterface, MessageCountAwareInterface, L
         try {
             $envelope = $this->serializer->decode([
                 'body' => $data['BODY'],
-                'headers' => $data['HEADERS'],
+                'headers' => $data['HEADERS'] ?? [],
             ]);
         } catch (MessageDecodingFailedException $exception) {
             $this->connection->reject((int) $data['ID']);

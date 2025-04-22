@@ -30,7 +30,6 @@ class MessageTable extends DataManager
                 ->configureRequired(true),
 
             (new ArrayField('HEADERS'))
-                ->configureRequired(true)
                 ->configureSerializationPhp(),
 
             (new StringField('QUEUE_NAME'))
