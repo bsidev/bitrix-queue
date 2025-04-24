@@ -476,29 +476,29 @@ class Queue
     {
         $monitoringConfig = array_replace_recursive(static::DEFAULT_MONITORING_CONFIG, $config['monitoring']);
 
+        $busNames = $monitoringConfig['buses'] ?? [];
+        $allowedBuses = array_keys($config['buses']);
+
+        if (count($busNames) !== count(array_intersect($busNames, $allowedBuses))) {
+            throw new RuntimeException(sprintf('Unknown bus found: [%s]. Allowed buses are [%s].', implode(', ', $busNames), implode(', ', $allowedBuses)));
+        }
+
+        $adapterDefinition = (new Definition(AdapterInterface::class))
+            ->setFactory([new Reference('monitoring.adapter_factory'), 'createAdapter'])
+            ->setArguments([
+                $monitoringConfig['adapter'],
+                $monitoringConfig['options'] ?? [],
+            ]);
+
+        $container->setDefinition('monitoring.adapter', $adapterDefinition);
+        $container->setAlias(AdapterInterface::class, 'monitoring.adapter')->setPublic(true);
+
+        $container->getDefinition('monitoring.push_stats_listener')
+            ->replaceArgument(0, new Reference('monitoring.adapter'))
+            ->replaceArgument(1, array_values($busNames));
+
         $isEnabled = $monitoringConfig['enabled'] ?? false;
-        if ($isEnabled) {
-            $busNames = $monitoringConfig['buses'] ?? [];
-
-            $allowedBuses = array_keys($config['buses']);
-            if (count($busNames) !== count(array_intersect($busNames, $allowedBuses))) {
-                throw new RuntimeException(sprintf('Unknown bus found: [%s]. Allowed buses are [%s].', implode(', ', $busNames), implode(', ', $allowedBuses)));
-            }
-
-            $adapterDefinition = (new Definition(AdapterInterface::class))
-                ->setFactory([new Reference('monitoring.adapter_factory'), 'createAdapter'])
-                ->setArguments([
-                    $monitoringConfig['adapter'],
-                    $monitoringConfig['options'] ?? [],
-                ]);
-
-            $container->setDefinition('monitoring.adapter', $adapterDefinition);
-            $container->setAlias(AdapterInterface::class, 'monitoring.adapter')->setPublic(true);
-
-            $container->getDefinition('monitoring.push_stats_listener')
-                ->replaceArgument(0, new Reference('monitoring.adapter'))
-                ->replaceArgument(1, array_values($busNames));
-        } else {
+        if (!$isEnabled) {
             $container->removeDefinition('monitoring.push_stats_listener');
         }
     }
