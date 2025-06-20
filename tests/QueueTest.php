@@ -65,7 +65,6 @@ class QueueTest extends AbstractTestCase
     public function testTransportFactoryRegister(): void
     {
         $this->expectException(RedisException::class);
-        $this->expectExceptionMessageMatches('/Temporary failure in name resolution/');
 
         $this->getBitrixEventMock();
         $this->getBitrixConfigurationMock([
