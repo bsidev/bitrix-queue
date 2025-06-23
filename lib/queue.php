@@ -28,7 +28,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
@@ -164,10 +163,6 @@ class Queue
 
     public function addMessageHandler(string $class, array $arguments = [], array $options = []): void
     {
-        if (!is_subclass_of($class, MessageHandlerInterface::class)) {
-            throw new RuntimeException(sprintf('Class "%s" must implement interface "%s".', $class, MessageHandlerInterface::class));
-        }
-
         $service = $this->container->register($class, $class);
         foreach ($arguments as $argument) {
             $service->addArgument($argument);

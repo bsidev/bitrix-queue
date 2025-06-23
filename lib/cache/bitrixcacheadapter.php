@@ -2,8 +2,6 @@
 
 namespace Bsi\Queue\Cache;
 
-use Bitrix\Main\Application;
-use Bitrix\Main\Data\Cache;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
@@ -13,20 +11,19 @@ use Psr\Cache\CacheItemPoolInterface;
 class BitrixCacheAdapter implements CacheItemPoolInterface
 {
     /** @var int */
-    private $lifetime;
+    private int $lifetime;
     /** @var string */
-    private $dir;
-    /** @var Cache */
-    private $cache;
+    private string $dir;
+    /** @var BitrixCacheInterface */
+    private BitrixCacheInterface $cache;
     /** @var array */
-    private $values = [];
+    private array $values = [];
 
-    public function __construct(int $lifetime = 0, string $dir = '/bsi/queue')
+    public function __construct(BitrixCacheInterface $cache, int $lifetime = 0, string $dir = '/bsi/queue')
     {
+        $this->cache = $cache;
         $this->lifetime = $lifetime > 0 ? $lifetime : 31536000;
         $this->dir = $dir;
-        /** @noinspection NullPointerExceptionInspection */
-        $this->cache = Application::getInstance()->getCache();
     }
 
     /**
@@ -92,7 +89,8 @@ class BitrixCacheAdapter implements CacheItemPoolInterface
      */
     public function clear(): bool
     {
-        return $this->cache->cleanDir($this->dir);
+        $this->cache->cleanDir($this->dir);
+        return true;
     }
 
     /**

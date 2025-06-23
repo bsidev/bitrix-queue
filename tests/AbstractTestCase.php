@@ -3,7 +3,10 @@
 namespace Bsi\Queue\Tests;
 
 use Mockery;
+use Bitrix\Main\Data\Cache;
 use PHPUnit\Framework\TestCase;
+use Bitrix\Main\Data\CacheEngineNone;
+use Bsi\Queue\Tests\Fixtures\DummyCache;
 
 abstract class AbstractTestCase extends TestCase
 {
@@ -31,46 +34,9 @@ abstract class AbstractTestCase extends TestCase
 
     protected function injectBitrixApplicationMock(): void
     {
+
         $mock = Mockery::mock('overload:Bitrix\Main\Application');
-
         $mock->shouldReceive('getInstance')->andReturnSelf();
-
-        $mock->shouldReceive('getCache')
-            ->andReturnUsing(function () {
-                return new class () {
-                    private $vars;
-
-                    public function forceRewriting($value): void
-                    {
-                    }
-
-                    public function cleanDir(): bool
-                    {
-                        $this->vars = null;
-
-                        return true;
-                    }
-
-                    public function initCache(): bool
-                    {
-                        return true;
-                    }
-
-                    public function getVars(): ?array
-                    {
-                        return $this->vars;
-                    }
-
-                    public function startDataCache($lifetime, $id, $dir, $value): void
-                    {
-                        $this->vars[$id] = $value;
-                    }
-
-                    public function endDataCache(): void
-                    {
-                    }
-                };
-            });
 
         $mock->shouldReceive('getConnection->startTransaction');
         $mock->shouldReceive('getConnection->commitTransaction');
