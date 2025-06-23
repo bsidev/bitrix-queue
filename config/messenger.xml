@@ -61,7 +61,7 @@
             <argument type="service" id="messenger.routable_message_bus"/>
         </service>
 
-        <service id="messenger.transport.in_memory.factory" class="Symfony\Component\Messenger\Transport\InMemoryTransportFactory">
+        <service id="messenger.transport.in_memory.factory" class="Symfony\Component\Messenger\Transport\InMemory\InMemoryTransportFactory">
             <tag name="messenger.transport_factory"/>
         </service>
 
@@ -104,10 +104,6 @@
             <tag name="kernel.event_subscriber"/>
             <argument type="service" id="cache.messenger.restart_workers_signal"/>
             <argument type="service" id="logger" on-invalid="ignore"/>
-        </service>
-
-        <service id="messenger.listener.stop_worker_on_sigterm_signal_listener" class="Symfony\Component\Messenger\EventListener\StopWorkerOnSigtermSignalListener">
-            <tag name="kernel.event_subscriber"/>
         </service>
 
         <!-- routable message bus -->

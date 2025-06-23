@@ -4,6 +4,7 @@ namespace Bsi\Queue\Tests\Cache;
 
 use Bsi\Queue\Cache\BitrixCacheAdapter;
 use Bsi\Queue\Tests\AbstractTestCase;
+use Bsi\Queue\Tests\Fixtures\DummyCache;
 
 class BitrixCacheAdapterTest extends AbstractTestCase
 {
@@ -13,7 +14,7 @@ class BitrixCacheAdapterTest extends AbstractTestCase
 
         $item = $cache->getItem('foo');
         $this->assertSame('foo', $item->getKey());
-        $this->assertNull($item->get());
+        $this->assertEmpty($item->get());
     }
 
     public function testSet(): void
@@ -39,6 +40,6 @@ class BitrixCacheAdapterTest extends AbstractTestCase
 
     protected function createCachePool(): BitrixCacheAdapter
     {
-        return new BitrixCacheAdapter();
+        return new BitrixCacheAdapter(new DummyCache());
     }
 }

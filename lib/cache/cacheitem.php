@@ -9,11 +9,11 @@ use Psr\Cache\CacheItemInterface;
  */
 final class CacheItem implements CacheItemInterface
 {
-    protected $key;
-    protected $value;
-    protected $isHit = false;
+    protected string $key;
+    protected mixed $value;
+    protected bool $isHit = false;
 
-    public function __construct(string $key, $value, bool $isHit = false)
+    public function __construct(string $key, mixed $value, bool $isHit = false)
     {
         $this->key = $key;
         $this->value = $value;
@@ -23,7 +23,7 @@ final class CacheItem implements CacheItemInterface
     /**
      * {@inheritdoc}
      */
-    public function get()
+    public function get(): mixed
     {
         return $this->value;
     }
@@ -47,7 +47,7 @@ final class CacheItem implements CacheItemInterface
     /**
      * {@inheritdoc}
      */
-    public function set($value): self
+    public function set(mixed $value): static
     {
         $this->value = $value;
 
@@ -57,7 +57,7 @@ final class CacheItem implements CacheItemInterface
     /**
      * {@inheritdoc}
      */
-    public function expiresAt($expiration): self
+    public function expiresAt(?\DateTimeInterface $expiration): static
     {
         return $this;
     }
@@ -65,7 +65,7 @@ final class CacheItem implements CacheItemInterface
     /**
      * {@inheritdoc}
      */
-    public function expiresAfter($time): self
+    public function expiresAfter(int|\DateInterval|null $time): static
     {
         return $this;
     }
