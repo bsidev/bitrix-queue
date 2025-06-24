@@ -11,7 +11,7 @@
     "@symfony/webpack-encore": "^4.6.0",
     "apexcharts": "^3.24.0",
     "autoprefixer": "^10.4.17",
-    "axios": "^1.6.0",
+    "axios": "^1.8.2",
     "babel-eslint": "^10.1.0",
     "babel-plugin-component": "^1.1.1",
     "cache-loader": "^4.1.0",
