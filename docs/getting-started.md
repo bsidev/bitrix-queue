@@ -3,8 +3,8 @@
 ## Установка
 
 ::: warning Требования
-- PHP >=7.2.5
-- 1С-Битрикс >=17.5.10
+- PHP >=8.0
+- 1С-Битрикс >=22.0.0
 - composer/installers ^1.0
 :::
 
@@ -41,16 +41,17 @@ http://домен/bitrix/admin/partner_modules.php?id=bsi.queue&lang=ru&install=
 Проинициализируйте ядро модуля:
 
 ```php
-// local/php_interface/init.php
+<?php
 
-// ...
+// local/php_interface/init.php
 
 use Bitrix\Main\Loader;
 use Bsi\Queue\Queue;
 
+// ...
+
 if (Loader::includeModule('bsi.queue')) {
-    $queue = Queue::getInstance();
-    $queue->boot();
+    Queue::getInstance()->boot();
 }
 ```
 
