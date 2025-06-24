@@ -29,7 +29,7 @@ class QueueIntegrationTest extends AbstractTestCase
         $this->getBitrixEventMock();
 
         $queue = Queue::getInstance();
-        $queue->addMessageHandler(DummyMessageHandler::class);
+        $queue->registerMessageHandler(DummyMessageHandler::class);
         $queue->boot();
 
         $envelope = $queue->dispatchMessage(new DummyMessage('Hello'));
@@ -52,7 +52,7 @@ class QueueIntegrationTest extends AbstractTestCase
         $this->getBitrixEventMock();
 
         $queue = Queue::getInstance();
-        $queue->addMessageHandler(DummyMessageHandler::class);
+        $queue->registerMessageHandler(DummyMessageHandler::class);
         $queue->boot();
 
         $envelope = $queue->dispatchMessage(new DummyMessage('Hello'), 'query_bus');
@@ -85,7 +85,7 @@ class QueueIntegrationTest extends AbstractTestCase
         $this->getBitrixEventMock();
 
         $queue = Queue::getInstance();
-        $queue->addMessageHandler(DummyMessageHandler::class);
+        $queue->registerMessageHandler(DummyMessageHandler::class);
         $queue->boot();
 
         $envelope = $queue->dispatchMessage(new DummyMessage('Hello'));

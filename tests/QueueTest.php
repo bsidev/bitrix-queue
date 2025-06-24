@@ -2,10 +2,16 @@
 
 namespace Bsi\Queue\Tests;
 
+use Mockery;
+use RedisException;
 use Bsi\Queue\Queue;
 use Bsi\Queue\Tests\Fixtures\DummyMessage;
+use Bsi\Queue\Tests\Fixtures\DummyService;
 use Bsi\Queue\Tests\Fixtures\DummyMessageHandler;
-use RedisException;
+use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
+use Bsi\Queue\Tests\Fixtures\Monitoring\DummyAdapter;
+use Bsi\Queue\Tests\Fixtures\Monitoring\DummyAdapterFactory;
+use Bsi\Queue\Tests\Fixtures\Transport\DummyTransportFactory;
 use Symfony\Component\Messenger\Bridge\Redis\Transport\RedisTransportFactory;
 
 /**
@@ -22,6 +28,8 @@ class QueueTest extends AbstractTestCase
         array $expectedBuses,
         ?string $expectedDefaultBus,
         array $expectedTransports,
+        array $expectedFactories,
+        array $expectedMessageHandlers,
         ?string $expectedFailureTransport,
         ?array $expectedRouting
     ): void {
@@ -33,6 +41,8 @@ class QueueTest extends AbstractTestCase
         $this->assertEquals($expectedBuses, $config['buses']);
         $this->assertSame($expectedDefaultBus, $config['default_bus']);
         $this->assertEquals($expectedTransports, $config['transports']);
+        $this->assertEquals($expectedFactories, $config['factories']);
+        $this->assertEquals($expectedMessageHandlers, $config['message_handlers']);
         $this->assertSame($expectedFailureTransport, $config['failure_transport']);
         $this->assertEquals($expectedRouting, $config['routing']);
     }
@@ -62,30 +72,240 @@ class QueueTest extends AbstractTestCase
         $this->assertArrayHasKey('messenger.transport.failed', $transports);
     }
 
-    public function testTransportFactoryRegister(): void
+    public function testMessageHandlerRegister()
     {
-        $this->expectException(RedisException::class);
+        $mockService = Mockery::mock(DummyService::class);
+        $mockService->shouldReceive('handle')->once();
 
         $this->getBitrixEventMock();
         $this->getBitrixConfigurationMock([
             'buses' => ['command_bus', 'query_bus'],
             'default_bus' => 'query_bus',
             'transports' => [
-                'sync' => 'redis://dummy',
-                'failed' => 'bitrix://',
+                'sync' => 'sync://',
             ],
             'routing' => [
                 DummyMessage::class => 'sync',
             ],
+            'monitoring' => ['enabled' => false],
+        ]);
+        $queue = Queue::getInstance();
+        $queue->registerMessageHandler(DummyMessageHandler::class, [$mockService]);
+        $queue->boot();
+
+        $container = $queue->getContainer();
+        $container->get('messenger.default_bus')->dispatch(new DummyMessage('hello'));
+
+        $this->assertTrue($container->has(DummyMessageHandler::class));
+    }
+
+    public function testMessageHandlerRegisterFromConfig()
+    {
+        $this->getBitrixEventMock();
+        $this->getBitrixConfigurationMock([
+            'buses' => ['command_bus', 'query_bus'],
+            'default_bus' => 'query_bus',
+            'transports' => [
+                'sync' => 'sync://',
+            ],
+            'message_handlers' => [
+                DummyMessageHandler::class
+            ],
+            'routing' => [
+                DummyMessage::class => 'sync',
+            ],
+            'monitoring' => ['enabled' => false],
+        ]);
+        $queue = Queue::getInstance();
+        $queue->boot();
+
+        $container = $queue->getContainer();
+        $container->get('messenger.default_bus')->dispatch(new DummyMessage('hello'));
+
+        $this->assertTrue($container->has(DummyMessageHandler::class));
+    }
+
+    public function testMessageHandlerRegisterFromConfigWithArguments()
+    {
+        $mockService = Mockery::mock(DummyService::class);
+        $mockService->shouldReceive('handle')->once();
+
+        $this->getBitrixEventMock();
+        $this->getBitrixConfigurationMock([
+            'buses' => ['command_bus', 'query_bus'],
+            'default_bus' => 'query_bus',
+            'transports' => [
+                'sync' => 'sync://',
+            ],
+            'message_handlers' => [
+                [
+                    'class' => DummyMessageHandler::class,
+                    'arguments' => [$mockService]
+                ],
+            ],
+            'routing' => [
+                DummyMessage::class => 'sync',
+            ],
+            'monitoring' => ['enabled' => false],
+        ]);
+        $queue = Queue::getInstance();
+        $queue->boot();
+
+        $container = $queue->getContainer();
+        $container->get('messenger.default_bus')->dispatch(new DummyMessage('hello'));
+
+        $this->assertTrue($container->has(DummyMessageHandler::class));
+    }
+
+    public function testTransportFactoryRegister(): void
+    {
+        $this->expectException(RedisException::class);
+
+        $mockService = Mockery::mock(DummyService::class);
+        $mockService->shouldReceive('handle')->once();
+
+        $this->getBitrixEventMock();
+        $this->getBitrixConfigurationMock([
+            'buses' => ['command_bus', 'query_bus'],
+            'default_bus' => 'query_bus',
+            'transports' => [
+                'async' => 'redis://dummy',
+                'sync' => 'dummy://',
+                'failed' => 'bitrix://',
+            ],
+            'routing' => [
+                DummyMessage::class => ['sync', 'async'],
+            ],
         ]);
 
         $queue = Queue::getInstance();
-        $queue->addMessageHandler(DummyMessageHandler::class);
+        $queue->registerMessageHandler(DummyMessageHandler::class);
         $queue->registerTransportFactory('redis', RedisTransportFactory::class);
+        $queue->registerTransportFactory('dummy', DummyTransportFactory::class, [$mockService]);
         $queue->boot();
-        $container = $queue->getContainer();
 
+        $container = $queue->getContainer();
         $container->get('messenger.default_bus')->dispatch(new DummyMessage('hello'));
+    }
+
+    public function testTransportFactoryRegisterFromConfig(): void
+    {
+        $this->expectException(RedisException::class);
+
+        $mockService = Mockery::mock(DummyService::class);
+        $mockService->shouldReceive('handle')->once();
+
+        $this->getBitrixEventMock();
+        $this->getBitrixConfigurationMock([
+            'buses' => ['command_bus', 'query_bus'],
+            'default_bus' => 'query_bus',
+            'transports' => [
+                'async' => 'redis://dummy',
+                'sync' => 'dummy://',
+                'failed' => 'bitrix://',
+            ],
+            'factories' => [
+                'transport' => [
+                    'redis' => RedisTransportFactory::class,
+                    'dummy' => [
+                        'class' => DummyTransportFactory::class,
+                        'arguments' => [$mockService]
+                    ]
+                ]
+            ],
+            'routing' => [
+                DummyMessage::class => ['sync', 'async'],
+            ],
+        ]);
+
+        $queue = Queue::getInstance();
+        $queue->boot();
+
+        $container = $queue->getContainer();
+        $container->get('messenger.default_bus')->dispatch(new DummyMessage('hello'));
+    }
+
+    public function testMonitoringAdapterFactoryRegister(): void
+    {
+        $mockService = Mockery::mock(DummyService::class);
+        $mockService->shouldReceive('handle')->once();
+
+        $this->getBitrixEventMock();
+        $this->getBitrixConfigurationMock([
+            'buses' => ['command_bus', 'query_bus'],
+            'default_bus' => 'command_bus',
+            'monitoring' => [
+                'enabled' => true,
+                'adapter' => 'dummy',
+                'buses' => ['command_bus'],
+            ],
+        ]);
+
+        $queue = Queue::getInstance();
+        $queue->registerMonitoringAdapterFactory('dummy', DummyAdapterFactory::class, [$mockService]);
+        $queue->boot();
+
+        /** @var AdapterInterface $monitoringAdapter */
+        $monitoringAdapter = $queue->getContainer()->get(AdapterInterface::class);
+        $this->assertInstanceOf(DummyAdapter::class, $monitoringAdapter);
+    }
+
+    public function testMonitoringAdapterFactoryRegisterFromConfig(): void
+    {
+        $this->getBitrixEventMock();
+        $this->getBitrixConfigurationMock([
+            'buses' => ['command_bus', 'query_bus'],
+            'default_bus' => 'command_bus',
+            'monitoring' => [
+                'enabled' => true,
+                'adapter' => 'dummy',
+                'buses' => ['command_bus'],
+            ],
+            'factories' => [
+                'monitoring' => [
+                    'dummy' => DummyAdapterFactory::class
+                ]
+            ],
+        ]);
+
+        $queue = Queue::getInstance();
+        $queue->boot();
+
+        /** @var AdapterInterface $monitoringAdapter */
+        $monitoringAdapter = $queue->getContainer()->get(AdapterInterface::class);
+        $this->assertInstanceOf(DummyAdapter::class, $monitoringAdapter);
+    }
+
+    public function testMonitoringAdapterFactoryRegisterFromConfigWithArguments(): void
+    {
+        $mockService = Mockery::mock(DummyService::class);
+        $mockService->shouldReceive('handle')->once();
+
+        $this->getBitrixEventMock();
+        $this->getBitrixConfigurationMock([
+            'buses' => ['command_bus', 'query_bus'],
+            'default_bus' => 'command_bus',
+            'monitoring' => [
+                'enabled' => true,
+                'adapter' => 'dummy',
+                'buses' => ['command_bus'],
+            ],
+            'factories' => [
+                'monitoring' => [
+                    'dummy' => [
+                        'class' => DummyAdapterFactory::class,
+                        'arguments' => [$mockService]
+                    ]
+                ]
+            ],
+        ]);
+
+        $queue = Queue::getInstance();
+        $queue->boot();
+
+        /** @var AdapterInterface $monitoringAdapter */
+        $monitoringAdapter = $queue->getContainer()->get(AdapterInterface::class);
+        $this->assertInstanceOf(DummyAdapter::class, $monitoringAdapter);
     }
 
     public function buildConfigurationProvider(): iterable
@@ -97,6 +317,8 @@ class QueueTest extends AbstractTestCase
             ],
             'expectedDefaultBus' => 'default',
             'expectedTransports' => [],
+            'expectedFactories' => ['transport' => [], 'monitoring' => []],
+            'expectedMessageHandlers' => [],
             'expectedFailureTransport' => null,
             'expectedRouting' => [],
         ];
@@ -108,6 +330,8 @@ class QueueTest extends AbstractTestCase
             'expectedBuses' => ['command_bus' => ['default_middleware' => true, 'middleware' => []]],
             'expectedDefaultBus' => 'command_bus',
             'expectedTransports' => [],
+            'expectedFactories' => ['transport' => [], 'monitoring' => []],
+            'expectedMessageHandlers' => [],
             'expectedFailureTransport' => null,
             'expectedRouting' => [],
         ];
@@ -119,6 +343,8 @@ class QueueTest extends AbstractTestCase
             'expectedBuses' => ['command_bus' => ['default_middleware' => true, 'middleware' => []]],
             'expectedDefaultBus' => 'command_bus',
             'expectedTransports' => [],
+            'expectedFactories' => ['transport' => [], 'monitoring' => []],
+            'expectedMessageHandlers' => [],
             'expectedFailureTransport' => null,
             'expectedRouting' => [],
         ];
@@ -137,6 +363,8 @@ class QueueTest extends AbstractTestCase
             ],
             'expectedDefaultBus' => 'command_bus',
             'expectedTransports' => [],
+            'expectedFactories' => ['transport' => [], 'monitoring' => []],
+            'expectedMessageHandlers' => [],
             'expectedFailureTransport' => null,
             'expectedRouting' => [],
         ];
@@ -159,6 +387,17 @@ class QueueTest extends AbstractTestCase
                     ],
                     'failed' => 'bitrix://',
                     'sync' => 'sync://',
+                ],
+                'factories' => [
+                    'transport' => [
+                        'redis' => RedisTransportFactory::class,
+                    ],
+                    'monitoring' => [
+                        'dummy' => DummyAdapterFactory::class
+                    ],
+                ],
+                'message_handlers' => [
+                    DummyMessageHandler::class,
                 ],
                 'failure_transport' => 'failed',
                 'routing' => [
@@ -211,6 +450,17 @@ class QueueTest extends AbstractTestCase
                         'max_delay' => 0,
                     ],
                 ],
+            ],
+            'expectedFactories' => [
+                'transport' => [
+                    'redis' => RedisTransportFactory::class,
+                ],
+                'monitoring' => [
+                    'dummy' => DummyAdapterFactory::class
+                ],
+            ],
+            'expectedMessageHandlers' => [
+                DummyMessageHandler::class,
             ],
             'expectedFailureTransport' => 'failed',
             'expectedRouting' => [

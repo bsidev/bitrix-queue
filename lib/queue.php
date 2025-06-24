@@ -2,37 +2,38 @@
 
 namespace Bsi\Queue;
 
-use Bitrix\Main\Config\Configuration;
 use Bitrix\Main\Event;
 use Bitrix\Main\EventResult;
-use Bsi\Queue\Event\SyncMessageFailedEvent;
-use Bsi\Queue\Event\SyncMessageHandledEvent;
+use BsiQueueCachedContainer;
+use Bitrix\Main\Config\Configuration;
 use Bsi\Queue\Exception\LogicException;
 use Bsi\Queue\Exception\RuntimeException;
-use Bsi\Queue\Monitoring\Adapter\AdapterFactoryInterface;
-use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
 use Symfony\Component\Config\ConfigCache;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
-use Symfony\Component\DependencyInjection\ChildDefinition;
-use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Exception\HandlerFailedException;
+use Bsi\Queue\Event\SyncMessageFailedEvent;
 use Symfony\Component\Messenger\MessageBus;
-use Symfony\Component\Messenger\MessageBusInterface;
+use Bsi\Queue\Event\SyncMessageHandledEvent;
+use Bsi\Queue\Monitoring\Adapter\AdapterInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
-use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Bsi\Queue\Monitoring\Adapter\AdapterFactoryInterface;
+use Symfony\Component\DependencyInjection\ChildDefinition;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Component\Messenger\Transport\TransportInterface;
+use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\Exception\HandlerFailedException;
+use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
+use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
+use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
+use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
+use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 
 /**
  * @author Sergey Balasov <sbalasov@gmail.com>
@@ -40,13 +41,13 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
 class Queue
 {
     /** @var Container */
-    protected $container;
+    protected Container $container;
     /** @var array */
-    protected $config;
+    protected array $config;
     /** @var bool */
-    protected $booted = false;
+    protected bool $booted = false;
     /** @var bool */
-    protected $useCache = false;
+    protected bool $useCache = false;
 
     /** @var Queue */
     private static $instance;
@@ -64,6 +65,11 @@ class Queue
         'failure_transport' => null,
         'routing' => [],
         'monitoring' => [],
+        'message_handlers' => [],
+        'factories' => [
+            'transport' => [],
+            'monitoring' => [],
+        ],
     ];
     protected const DEFAULT_BUS_CONFIG = [
         'default_middleware' => true,
@@ -146,14 +152,17 @@ class Queue
 
                 $dumper = new PhpDumper($this->container);
                 $containerConfigCache->write(
-                    $dumper->dump(['class' => 'BsiQueueCachedContainer']),
+                    $dumper->dump([
+                        'class' => 'BsiQueueCachedContainer',
+                        'base_class' => Container::class
+                    ]),
                     $this->container->getResources()
                 );
             }
 
             require_once $cacheFileFull;
             /** @noinspection PhpUndefinedClassInspection */
-            $this->container = new \BsiQueueCachedContainer();
+            $this->container = new BsiQueueCachedContainer();
         } else {
             $this->initializeContainer();
         }
@@ -161,7 +170,16 @@ class Queue
         $this->booted = true;
     }
 
+    /**
+     * @deprecated Use registerMessageHandler() instead
+     * @see registerMessageHandler()
+     */
     public function addMessageHandler(string $class, array $arguments = [], array $options = []): void
+    {
+        $this->registerMessageHandler($class, $arguments, $options);
+    }
+
+    public function registerMessageHandler(string $class, array $arguments = [], array $options = []): void
     {
         $service = $this->container->register($class, $class);
         foreach ($arguments as $argument) {
@@ -252,6 +270,10 @@ class Queue
         }
         $config['buses'] = $newBusesConfig;
 
+        if (!empty($config['factories'])) {
+            $config['factories'] = array_merge_recursive(static::DEFAULT_CONFIG['factories'], $config['factories']);
+        }
+
         $newTransportsConfig = [];
         foreach ($config['transports'] as $id => $transport) {
             if (is_string($transport)) {
@@ -337,6 +359,35 @@ class Queue
                 $container->setAlias(MessageBusInterface::class, $busId);
             } else {
                 $container->registerAliasForArgument($busId, MessageBusInterface::class);
+            }
+        }
+
+        if (!empty($config['message_handlers'])) {
+            foreach ($config['message_handlers'] as $messageHandlerIndex => $messageHandler) {
+                if (is_array($messageHandler)) {
+                    if (!isset($messageHandler['class'])) {
+                        throw new LogicException(sprintf('Invalid message handler configuration: missing required "class" key for message handler with index %s.', $messageHandlerIndex));
+                    }
+                    $messageHandlerArguments = isset($messageHandler['arguments']) && is_array($messageHandler['arguments']) ? $messageHandler['arguments'] : [];
+                    $messageHandlerOptions = isset($messageHandler['options']) && is_array($messageHandler['options']) ? $messageHandler['options'] : [];
+                    $this->registerMessageHandler($messageHandler['class'], $messageHandlerArguments, $messageHandlerOptions);
+                } else {
+                    $this->registerMessageHandler($messageHandler);
+                }
+            }
+        }
+
+        if (!empty($config['factories']['transport'])) {
+            foreach ($config['factories']['transport'] as $transportCode => $transportFactory) {
+                if (is_array($transportFactory)) {
+                    if (!isset($transportFactory['class'])) {
+                        throw new LogicException(sprintf('Invalid transport factory configuration: missing required "class" key for transport factory with code %s.', $transportCode));
+                    }
+                    $transportFactoryArguments = isset($transportFactory['arguments']) && is_array($transportFactory['arguments']) ? $transportFactory['arguments'] : [];
+                    $this->registerTransportFactory($transportCode, $transportFactory['class'], $transportFactoryArguments);
+                } else {
+                    $this->registerTransportFactory($transportCode, $transportFactory);
+                }
             }
         }
 
@@ -476,6 +527,20 @@ class Queue
 
         if (count($busNames) !== count(array_intersect($busNames, $allowedBuses))) {
             throw new RuntimeException(sprintf('Unknown bus found: [%s]. Allowed buses are [%s].', implode(', ', $busNames), implode(', ', $allowedBuses)));
+        }
+
+        if (!empty($config['factories']['monitoring'])) {
+            foreach ($config['factories']['monitoring'] as $monitoringFactoryCode => $monitoringFactory) {
+                if (is_array($monitoringFactory)) {
+                    if (!isset($monitoringFactory['class'])) {
+                        throw new LogicException(sprintf('Invalid monitoring factory configuration: missing required "class" key for monitoring factory with code %s.', $monitoringFactoryCode));
+                    }
+                    $monitoringFactoryArguments = isset($monitoringFactory['arguments']) && is_array($monitoringFactory['arguments']) ? $monitoringFactory['arguments'] : [];
+                    $this->registerMonitoringAdapterFactory($monitoringFactoryCode, $monitoringFactory['class'], $monitoringFactoryArguments);
+                } else {
+                    $this->registerMonitoringAdapterFactory($monitoringFactoryCode, $monitoringFactory);
+                }
+            }
         }
 
         $adapterDefinition = (new Definition(AdapterInterface::class))

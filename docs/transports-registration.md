@@ -14,9 +14,13 @@ composer require symfony/redis-messenger
 
 ### Регистрация фабрики
 
+Фабрики регистрируются в [конфигурации](configuration.md#factoriestransport) модуля или с помощью метода `registerTransportFactory`
+
 ```php
 <?php
+
 // local/php_interface/init.php
+
 use Bitrix\Main\Loader;
 use Bsi\Queue\Queue;
 use Symfony\Component\Messenger\Bridge\Redis\Transport\RedisTransportFactory;
@@ -28,7 +32,7 @@ if (Loader::includeModule('bsi.queue')) {
 }
 ```
 
-### Пример конфигурации
+### Пример конфигурации транспортов
 
 ```php
 [
@@ -43,7 +47,7 @@ if (Loader::includeModule('bsi.queue')) {
 ```
 
 ::: warning ВАЖНО
-Обработчики должны добавляться до инициализации системы очередей (вызова метода `boot()`).
+Метод `registerTransportFactory()` должен быть вызван **до** инициализации очередей, то есть **до** вызова метода `boot()`.
 :::
 
 **Ссылки по теме:**

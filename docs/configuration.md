@@ -5,7 +5,10 @@
 ## Пример конфигурации
 
 ```php
+<?php
+
 // bitrix/.settings_extra.php
+
 return [
     // ...
    'bsi.queue' => [
@@ -27,6 +30,29 @@ return [
            'routing' => [
                'App\Message\TestMessage' => 'async',
            ],
+           'message_handlers' => [
+                App\MessageHandler\EmailNotificationHandler::class,
+                [
+                    'class' => App\MessageHandler\SmsNotificationHandler::class,
+                    'arguments' => ['param1', 'param2']
+                ]
+           ],       
+           'factories' => [
+                'transport' => [
+                    'redis' => App\Transport\RedisTransportFactory::class,
+                    'amqp' => [
+                        'class' => App\Transport\AmqpTransportFactory::class,
+                        'arguments' => ['param1', 'param2']
+                    ]
+                ],
+                'monitoring' => [
+                     'elastic' => App\Monitoring\ElasticAdapterFactory::class,
+                     'graylog' => [
+                        'class' => App\Monitoring\GraylogAdapterFactory::class,
+                        'arguments' => ['param1', 'param2']
+                     ]
+                ],
+           ],
            'monitoring' => [
                'enabled' => true,
                'adapter' => 'bitrix',
@@ -46,7 +72,9 @@ return [
 - [transports](#transports)
 - [failure_transport](#failure_transport)
 - [routing](#routing)
-- [monitoring](#monitoring-enabled)
+- [message_handlers](#message_handlers)
+- [factories](#factoriestransport)
+- [monitoring](#monitoringenabled)
 
 ### buses
 
@@ -123,6 +151,117 @@ return [
     ],
 ];
 ```
+
+### message_handlers
+
+- Тип: `array`
+- По умолчанию: `[]`
+
+Регистрация обработчиков сообщений. Допускается два варианта написания: **inline** и **расширенный**.
+
+В **inline-форме** указывается только имя класса:
+
+```php
+App\MessageHandler\EmailNotificationHandler::class
+```
+
+В **расширенной форме** можно передавать дополнительные аргументы конструктора:
+```php
+[
+    'class' => App\MessageHandler\SmsNotificationHandler::class,
+    'arguments' => ['param1', 'param2']
+]
+```
+
+Пример полной конфигурации:
+
+```php
+[
+   'message_handlers' => [
+        App\MessageHandler\EmailNotificationHandler::class,
+        [
+            'class' => App\MessageHandler\SmsNotificationHandler::class,
+            'arguments' => ['param1', 'param2']
+        ]
+    ]
+]
+```
+
+### factories.transport
+
+- Тип: `array`
+- По умолчанию: `[]`
+
+Регистрация фабрик транспорта. Допускается два варианта написания: **inline** и **расширенный**.
+
+В **inline-форме** указывается только имя класса:
+```php
+'redis' => App\Transport\RedisTransportFactory::class
+```
+
+В **расширенной форме** можно передавать дополнительные аргументы конструктора:
+```php
+'redis' => [
+    'class' => App\Transport\AmqpTransportFactory::class,
+    'arguments' => ['param1', 'param2']
+]
+```
+
+Пример полной конфигурации:
+
+```php
+[
+   'factories' => [
+        'transport' => [
+            'redis' => App\Transport\RedisTransportFactory::class,
+            'amqp' => [
+                'class' => App\Transport\AmqpTransportFactory::class,
+                'arguments' => []
+            ]
+        ]
+    ]
+]
+```
+
+Каждая фабрика должна реализовывать интерфейс **Symfony\Component\Messenger\Transport\TransportFactoryInterface** (или совместимый).
+
+### factories.monitoring
+
+- Тип: `array`
+- По умолчанию: `[]`
+
+Регистрация фабрик мониторинга. Допускается два варианта написания: **inline** и **расширенный**.
+
+В **inline-форме** указывается только имя класса:
+```php
+'elastic' => App\Monitoring\ElasticAdapterFactory::class
+```
+
+В **расширенной форме** можно передавать дополнительные аргументы конструктора:
+```php
+'elastic' => [
+    'class' => App\Monitoring\GraylogAdapterFactory::class,
+    'arguments' => ['param1', 'param2']
+]
+```
+
+Пример полной конфигурации:
+
+```php
+[
+   'factories' => [
+        'monitoring' => [
+            'elastic' => App\Monitoring\ElasticAdapterFactory::class,
+            'graylog' => [
+                'class' => App\Monitoring\GraylogAdapterFactory::class,
+                'arguments' => ['param1', 'param2']
+            ]
+        ]
+    ]
+]
+```
+
+Каждая фабрика должна реализовывать интерфейс **Bsi\Queue\Monitoring\Adapter\AdapterFactoryInterface** (или совместимый).
 
 ### monitoring.enabled
 
