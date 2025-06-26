@@ -113,7 +113,10 @@
         </service>
 
         <!-- console -->
-        <service id="cache.messenger.restart_workers_signal" class="Bsi\Queue\Cache\BitrixCacheAdapter"/>
+        <service id="cache.messenger.cache_service" class="Bsi\Queue\Cache\BitrixCache"/>
+        <service id="cache.messenger.restart_workers_signal" class="Bsi\Queue\Cache\BitrixCacheAdapter">
+            <argument type="service" id="cache.messenger.cache_service"/>
+        </service>
 
         <service id="console.command.messenger_consume_messages" class="Symfony\Component\Messenger\Command\ConsumeMessagesCommand" public="true">
             <argument/> <!-- Routable message bus -->
