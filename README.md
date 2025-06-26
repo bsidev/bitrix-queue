@@ -82,9 +82,15 @@
     }
     ```
 
-5. Для запуска обработки сообщений используется консольный скрипт:
+5. Запуск воркера обработки сообщений можно произвести двумя способами:
 
-    ```
+   <br>Bitrix CLI
+   ```shell
+   php bitrix/bitrix.php bsi.queue:consume async --time-limit=3600
+   ```
+
+   Нативный скрипт
+    ```shell
     php bitrix/modules/bsi.queue/bin/console messenger:consume async --time-limit=3600
     ```
 
