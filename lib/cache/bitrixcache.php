@@ -38,13 +38,12 @@ class BitrixCache implements BitrixCacheInterface
         ) ?? false;
     }
 
-    public function getVars(): array
+    public function getVars(): mixed
     {
-        $vars = $this->cache->getVars();
-        return is_array($vars) ? $vars : [];
+        return $this->cache->getVars();
     }
 
-    public function startDataCache(?int $ttl = null, ?string $uniqueString = null, ?string $initDir = null, array $vars = [], ?string $baseDir = null): bool
+    public function startDataCache(?int $ttl = null, ?string $uniqueString = null, ?string $initDir = null, mixed $vars = null, ?string $baseDir = null): bool
     {
         return $this->cache->startDataCache(
             $ttl ?? false,
@@ -55,7 +54,7 @@ class BitrixCache implements BitrixCacheInterface
         ) ?? false;
     }
 
-    public function endDataCache(?array $vars = null): void
+    public function endDataCache(mixed $vars = null): void
     {
         $this->cache->endDataCache($vars ?? false);
     }

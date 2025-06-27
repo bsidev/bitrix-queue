@@ -29,13 +29,13 @@ class DummyCache implements BitrixCacheInterface
         return $this->vars;
     }
 
-    public function startDataCache(?int $ttl = null, ?string $uniqueString = null, ?string $initDir = null, array $vars = [], ?string $baseDir = null): bool
+    public function startDataCache(?int $ttl = null, ?string $uniqueString = null, ?string $initDir = null, mixed $vars = null, ?string $baseDir = null): bool
     {
         $this->vars[$uniqueString] = $vars;
         return true;
     }
 
-    public function endDataCache(?array $vars = null): void
+    public function endDataCache(mixed $vars = null): void
     {
     }
 
