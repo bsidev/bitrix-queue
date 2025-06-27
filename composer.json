@@ -5,7 +5,7 @@
     "bitrix",
     "queue"
   ],
-  "type": "bitrix-d7-module",
+  "type": "bitrix-module",
   "license": "MIT",
   "support": {
     "issues": "https://github.com/bsidev/bitrix-queue/issues",
