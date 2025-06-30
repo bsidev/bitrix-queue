@@ -14,9 +14,9 @@ if (!Loader::includeModule('bsi.queue')) {
 }
 
 return [
-    'parent_menu' => 'global_menu_settings',
+    'parent_menu' => 'global_menu_services',
     'section' => 'bsi_queue',
-    'sort' => 2000,
+    'sort' => 100,
     'text' => Loc::getMessage('BSI_QUEUE_MENU_TEXT'),
     'title' => Loc::getMessage('BSI_QUEUE_MENU_TITLE'),
     'icon' => 'bsi_queue_menu_icon',
