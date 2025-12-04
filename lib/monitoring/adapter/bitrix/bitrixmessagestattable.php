@@ -62,11 +62,11 @@ class BitrixMessageStatTable extends DataManager
         ];
     }
 
-    public static function getRowByUuid(string $uuid): ?array
+    public static function getRowByUuid(string $uuid, array $select = ['*']): ?array
     {
         return static::getRow([
-            'select' => ['*'],
-            'filter' => ['UUID' => $uuid],
+            'select' => $select,
+            'filter' => ['=UUID' => $uuid],
         ]);
     }
 }

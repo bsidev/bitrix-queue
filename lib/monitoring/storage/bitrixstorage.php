@@ -63,7 +63,7 @@ class BitrixStorage implements StorageInterface
         }
         $uuid = $uuidStamp->getUuid()->toString();
 
-        $row = BitrixMessageStatTable::getRowByUuid($uuid);
+        $row = BitrixMessageStatTable::getRowByUuid($uuid, ['ID']);
         if ($row === null) {
             throw new RuntimeException(sprintf('Envelope with uuid "%s" not found.', $uuid));
         }
