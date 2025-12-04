@@ -31,7 +31,7 @@
     "symfony/console": "^4.1|^5.0|^6.0|^7.0",
     "symfony/dependency-injection": "^4.4.17|^5.1.9|^6.0|^7.0",
     "symfony/event-dispatcher": "^4.4|^5.0|^6.0|^7.0",
-    "symfony/messenger": "^5.3|^6.0|^7.0"
+    "symfony/messenger": "^6.0|^7.0"
   },
   "require-dev": {
     "ext-redis": "*",

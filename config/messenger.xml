@@ -124,6 +124,9 @@
             <argument type="service" id="event_dispatcher"/>
             <argument type="service" id="logger" on-invalid="null"/>
             <argument type="collection"/> <!-- Receiver names -->
+            <argument type="service" id="messenger.listener.reset_services" on-invalid="null"/>
+            <argument type="collection"/> <!-- Bus names -->
+            <argument type="service" id="messenger.rate_limiter_locator" on-invalid="null"/>
 
             <tag name="console.command" command="messenger:consume"/>
         </service>
