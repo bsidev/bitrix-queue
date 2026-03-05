@@ -1172,11 +1172,6 @@
     webpack-dev-server "^4.8.0"
     yargs-parser "^21.0.0"
 
-"@trysound/sax@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@trysound/sax/-/sax-0.2.0.tgz#cccaab758af56761eb7bf37af6f03f326dd798ad"
-  integrity sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==
-
 "@types/body-parser@*":
   version "1.19.4"
   resolved "https://registry.yarnpkg.com/@types/body-parser/-/body-parser-1.19.4.tgz#78ad68f1f79eb851aa3634db0c7f57f6f601b462"
@@ -2535,7 +2530,7 @@ css-select@^5.1.0:
     domutils "^3.0.1"
     nth-check "^2.0.1"
 
-css-tree@^2.2.1:
+css-tree@^2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/css-tree/-/css-tree-2.3.1.tgz#10264ce1e5442e8572fc82fbe490644ff54b5c20"
   integrity sha512-6Fv1DV/TYw//QF5IzQdqsNDjx/wc8TrMBZsqjL9eW01tWb7R7k/mq+/VXfJCl7SoD5emsJop9cOByJZfs8hYIw==
@@ -5822,6 +5817,11 @@ sass@^1.69.4:
     immutable "^4.0.0"
     source-map-js ">=0.6.2 <2.0.0"
 
+sax@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/sax/-/sax-1.5.0.tgz#b5549b671069b7aa392df55ec7574cf411179eb8"
+  integrity sha512-21IYA3Q5cQf089Z6tgaUTr7lDAyzoTPx5HRtbhsME8Udispad8dC/+sziTNugOEx54ilvatQ9YCzl4KQLPcRHA==
+
 schema-utils@^2.0.0, schema-utils@^2.6.5:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-2.7.1.tgz#1ca4f32d1b24c590c203b8e7a50bf0ea4cd394d7"
@@ -6345,16 +6345,17 @@ svg.select.js@^3.0.1:
     svg.js "^2.6.5"
 
 svgo@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/svgo/-/svgo-3.0.2.tgz#5e99eeea42c68ee0dc46aa16da093838c262fe0a"
-  integrity sha512-Z706C1U2pb1+JGP48fbazf3KxHrWOsLme6Rv7imFBn5EnuanDW1GPaA/P1/dvObE670JDePC3mnj0k0B7P0jjQ==
+  version "3.3.3"
+  resolved "https://registry.yarnpkg.com/svgo/-/svgo-3.3.3.tgz#8246aee0b08791fde3b0ed22b5661b471fadf58e"
+  integrity sha512-+wn7I4p7YgJhHs38k2TNjy1vCfPIfLIJWR5MnCStsN8WuuTcBnRKcMHQLMM2ijxGZmDoZwNv8ipl5aTTen62ng==
   dependencies:
-    "@trysound/sax" "0.2.0"
     commander "^7.2.0"
     css-select "^5.1.0"
-    css-tree "^2.2.1"
+    css-tree "^2.3.1"
+    css-what "^6.1.0"
     csso "^5.0.5"
     picocolors "^1.0.0"
+    sax "^1.5.0"
 
 sync-rpc@^1.3.6:
   version "1.3.6"
